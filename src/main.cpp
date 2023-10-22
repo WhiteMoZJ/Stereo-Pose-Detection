@@ -1,6 +1,5 @@
-#include <iostream>
 #include "Task/thread_task.h"
-
+#include "stdafx.h"
 
 int main()
 {

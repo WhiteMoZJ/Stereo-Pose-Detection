@@ -1,4 +1,5 @@
-add_executable(pose_detection_display main.cpp
+add_executable(pose_detection_display
+        main.cpp
         Device/camera.cpp
         Device/camera.h
         Task/thread_task.cpp
@@ -7,3 +8,4 @@ add_executable(pose_detection_display main.cpp
         Task/frame_buffer.h
 )
 
+target_precompile_headers(pose_detection_display PUBLIC stdafx.h)

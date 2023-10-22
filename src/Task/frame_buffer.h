@@ -5,11 +5,7 @@
 #ifndef FRAME_BUFFER_H
 #define FRAME_BUFFER_H
 
-#include <mutex>
-#include <chrono>
-#include <iostream>
-#include <vector>
-#include <opencv2/opencv.hpp>
+#include "../stdafx.h"
 
 struct Frame
 {

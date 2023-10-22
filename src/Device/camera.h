@@ -6,8 +6,7 @@
 #define CAMERA_H
 
 #include <librealsense2/rs.hpp>
-#include <opencv2/opencv.hpp>
-#include <iostream>
+#include "../stdafx.h"
 
 namespace device
 {
@@ -34,7 +33,7 @@ public:
 
 private:
     rs2::config cfg;    // realsense config
-    rs2::pipeline pipe; // realsense pipe
+    rs2::pipeline pipe; // realsense pipeline
 
     unsigned int _width, _height;
     unsigned int _framecount;

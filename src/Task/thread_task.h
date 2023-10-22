@@ -5,10 +5,9 @@
 #ifndef THREAD_TASK_H
 #define THREAD_TASK_H
 
-
 #include "frame_buffer.h"
 #include "../Device/camera.h"
-#include <thread>
+#include "../stdafx.h"
 
 class ThreadTask
 {
