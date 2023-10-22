@@ -23,24 +23,28 @@ void ThreadTask::init()
 
 void ThreadTask::produce()
 {
-    Frame frame;
-    while (cv::waitKey(1) < 0) {
+    while (cv::waitKey(1) != 27) {  // press esc to exit
         _M_frame.lock();
         _cameraPtr->startStream();
-        frames[0] = _cameraPtr->left;
-        frames[1] = _cameraPtr->right;
+        _frames[0] = _cameraPtr->left;
+        _frames[1] = _cameraPtr->right;
         _M_frame.unlock();
         std::this_thread::sleep_for(std::chrono::milliseconds(12));
     }
-
+    _frames[0].release();
+    _frames[1].release();
 }
 
 void ThreadTask::consume()
 {
-    while (cv::waitKey(1) < 0) {
+    while (cv::waitKey(1) != 27) {
         _M_frame.lock();
-        cv::imshow("left", frames[0]);
-        cv::imshow("right", frames[1]);
+        if (_frames[0].empty() && _frames[1].empty()) {
+            cv::destroyAllWindows();
+            break;
+        }
+        cv::imshow("left", _frames[0]);
+        cv::imshow("right", _frames[1]);
         _M_frame.unlock();
         std::this_thread::sleep_for(std::chrono::milliseconds(12));
     }

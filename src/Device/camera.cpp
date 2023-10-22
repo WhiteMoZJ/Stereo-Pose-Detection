@@ -61,6 +61,7 @@ bool device::Camera::startStream()
 
     left = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
     right = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+    return true;
 }
 
 

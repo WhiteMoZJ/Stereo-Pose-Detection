@@ -7,7 +7,7 @@
 
 
 #include "frame_buffer.h"
-#include "camera.h"
+#include "../Device/camera.h"
 #include <thread>
 
 class ThreadTask
@@ -30,7 +30,7 @@ private:
     std::mutex _M_frame;
     std::unique_ptr<device::Camera> _cameraPtr;
     // FrameBuffer _buffer;
-    cv::Mat frames[2];
+    cv::Mat _frames[2];
 };
 
 
