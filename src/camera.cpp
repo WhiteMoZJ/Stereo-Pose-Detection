@@ -4,37 +4,73 @@
 
 #include "camera.h"
 
-Camera::Camera() : width(640), height(480)
+device::Camera::Camera()
 {
-    cfg.enable_stream(RS2_STREAM_INFRARED, 1, width, height, RS2_FORMAT_Y8);
-    cfg.enable_stream(RS2_STREAM_INFRARED, 2, width, height, RS2_FORMAT_Y8);
+    _width = 0;
+    _height = 0;
+    _framecount = 0;
+    fps = 0;
 }
 
-void Camera::startStream()
+bool device::Camera::setUp()
 {
+    cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8);
+    cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8);
+
     // disable emitter
     rs2::pipeline_profile selection = pipe.start(cfg);
     rs2::device selected_device = selection.get_device();
+    if (!selected_device)
+        return false;
     auto depth_sensor = selected_device.first<rs2::depth_sensor>();
     if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
         depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
 
-    while (cv::waitKey(1) < 0) {
-        rs2::frameset frameset = pipe.wait_for_frames();
-
-        // get left and right infrared frames from frameset
-        rs2::video_frame ir_frame_left = frameset.get_infrared_frame(1);
-        rs2::video_frame ir_frame_right = frameset.get_infrared_frame(2);
-
-        frame_left.dMat = cv::Mat(cv::Size(width, height), CV_8UC1, (void*)ir_frame_left.get_data());
-        frame_right.dMat = cv::Mat(cv::Size(width, height), CV_8UC1, (void*)ir_frame_right.get_data());
-
-        cv::imshow("Left", frame_left.dMat);
-        cv::imshow("Right", frame_right.dMat);
-    }
+    return true;
 }
 
-void Camera::endStream()
+void device::Camera::setVideoFormat(size_t width, size_t height)
+{
+    if (_width == width && _height == height)
+    {
+        _framecount = 0;
+        return;
+    }
+    _width = width;
+    _height = height;
+    _framecount = 0;
+}
+
+//bool Camera::setExposureTime(int t)
+//{
+//    return false;
+//}
+
+//bool device::Camera::setFps(int fps)
+//{
+//
+//}
+
+bool device::Camera::startStream()
+{
+    rs2::frameset frameset = pipe.wait_for_frames();
+
+    // get left and right infrared frames from frameset
+    ir_frame_left = frameset.get_infrared_frame(1);
+    ir_frame_right = frameset.get_infrared_frame(2);
+
+    left = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
+    right = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+}
+
+
+
+bool device::Camera::endStream()
 {
     pipe.stop();
+    return false;
 }
+
+
+
+

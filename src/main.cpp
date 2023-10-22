@@ -1,11 +1,16 @@
 #include <iostream>
-#include "camera.h"
+#include "thread_task.h"
 
 
 int main()
 {
-    Camera cam;
-    cam.startStream();
-    cam.endStream();
+    ThreadTask thread_task;
+    thread_task.init();
+
+    std::thread produce_thread{&ThreadTask::produce, &thread_task};
+    std::thread consume_thread{&ThreadTask::consume, &thread_task};
+
+    produce_thread.join();
+    consume_thread.join();
 
 }
