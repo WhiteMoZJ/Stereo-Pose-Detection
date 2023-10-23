@@ -17,8 +17,8 @@ ThreadTask::~ThreadTask()
 
 void ThreadTask::init()
 {
-    _cameraPtr->setUp();
     _cameraPtr->setVideoFormat(640, 480);
+    _cameraPtr->setUpStream();
 }
 
 void ThreadTask::produce()

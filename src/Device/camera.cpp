@@ -9,24 +9,6 @@ device::Camera::Camera()
     _width = 0;
     _height = 0;
     _framecount = 0;
-    fps = 0;
-}
-
-bool device::Camera::setUp()
-{
-    cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8);
-    cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8);
-
-    // disable emitter
-    rs2::pipeline_profile selection = pipe.start(cfg);
-    rs2::device selected_device = selection.get_device();
-    if (!selected_device)
-        return false;
-    auto depth_sensor = selected_device.first<rs2::depth_sensor>();
-    if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
-        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
-
-    return true;
 }
 
 void device::Camera::setVideoFormat(size_t width, size_t height)
@@ -46,25 +28,36 @@ void device::Camera::setVideoFormat(size_t width, size_t height)
 //    return false;
 //}
 
-//bool device::Camera::setFps(int fps)
-//{
-//
-//}
+bool device::Camera::setUpStream(size_t fps)
+{
+    cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, fps);
+    cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, fps);
+
+    // disable emitter
+    rs2::pipeline_profile selection = pipe.start(cfg);
+    rs2::device selected_device = selection.get_device();
+    if (!selected_device)
+        return false;
+    auto depth_sensor = selected_device.first<rs2::depth_sensor>();
+    if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
+        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
+
+    return true;
+}
 
 bool device::Camera::startStream()
 {
     rs2::frameset frameset = pipe.wait_for_frames();
 
     // get left and right infrared frames from frameset
-    ir_frame_left = frameset.get_infrared_frame(1);
-    ir_frame_right = frameset.get_infrared_frame(2);
+    rs2::video_frame ir_frame_left = frameset.get_infrared_frame(1);
+    rs2::video_frame ir_frame_right = frameset.get_infrared_frame(2);
 
     left = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
     right = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+
     return true;
 }
-
-
 
 bool device::Camera::endStream()
 {

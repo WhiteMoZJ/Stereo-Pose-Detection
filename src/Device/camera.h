@@ -20,12 +20,9 @@ public:
     cv::Mat left;
     cv::Mat right;
 
-    unsigned int fps;
-
-    bool setUp();
-    // bool setExposureTime(int t = 0);
-    // bool setFps(int fps);
-    void setVideoFormat(size_t width, size_t height);
+    bool setUpStream(size_t fps = 90);
+    // bool setExposureTime(int t = 0)
+    void setVideoFormat(size_t width = 640, size_t height = 480);
 
     // video stream control
     bool startStream();
@@ -38,10 +35,6 @@ private:
     unsigned int _width, _height;
     unsigned int _framecount;
 
-
-    // realsence video frame
-    rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
-    rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
 };
 }
 
