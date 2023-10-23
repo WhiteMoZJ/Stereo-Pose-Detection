@@ -35,15 +35,16 @@ void ThreadTask::produce()
     auto startTime = std::chrono::high_resolution_clock::now();
 //    auto t1 = std::chrono::high_resolution_clock::now();
     while (cv::waitKey(1) != 27) {  // press esc to exit
-        std::unique_lock<std::mutex> lock(_M_frame);
-        _cameraPtr->startStream();
-        cv::Mat _frames[2];
-        _frames[0] = _cameraPtr->left;
-        _frames[1] = _cameraPtr->right;
-        double timeStamp = (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
-        _produce_signal = _buffer.push(Frame{{_frames[0], _frames[1]}, _cameraPtr->getFrameCount(), timeStamp});
-
         if (!_consume_signal) break;    // detect if consume thread is terminated
+
+        std::unique_lock<std::mutex> lock(_mFrame);
+
+        _cameraPtr->startStream();
+        std::array<cv::Mat, 2> images;
+
+        *_cameraPtr >> images;
+        double timeStamp = (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
+        _produce_signal = _buffer.push(Frame{{images[0], images[1]}, _cameraPtr->getFrameCount(), timeStamp});
 
         // Capture period: about 11 ms (1000ms/90)
 //        auto t2 = std::chrono::high_resolution_clock::now();
@@ -58,23 +59,19 @@ void ThreadTask::consume()
 {
     while (cv::waitKey(1) != 27) {
 
+        std::unique_lock<std::mutex> lock(_mFrame);
+
         Frame frame;
-        std::unique_lock<std::mutex> lock(_M_frame);
-
         if (!_produce_signal) break;    // detect if produce thread is terminated
-
         if (!_buffer.getLatest(frame)) {
             int time = static_cast<int>(frame.timeStamp);
-            std::cout << "[" << time/3600000 << ":" << time/60000%60 << ":" << time/1000%60 << ":" << time % 1000 << "]: buffer warning" << std::endl;
+            printf("[%2d:%2d:%2d:%3d]: buffer warning\n", time/3600000, time/60000%60, time/1000%60, time % 1000);
             continue;
         }
 
-        cv::imshow("left", frame.img[0]);
-        cv::imshow("right", frame.img[1]);
-
+        debug::Tool::displayCameraFrame(frame);
     }
     _consume_signal = false;
-    cv::destroyAllWindows();
 }
 
 

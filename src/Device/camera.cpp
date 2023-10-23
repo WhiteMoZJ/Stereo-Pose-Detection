@@ -52,26 +52,34 @@ bool device::Camera::startStream()
     rs2::frameset frameset = pipe.wait_for_frames();
 
     // get left and right infrared frames from frameset
-    rs2::video_frame ir_frame_left = frameset.get_infrared_frame(1);
-    rs2::video_frame ir_frame_right = frameset.get_infrared_frame(2);
+    ir_frame_left = frameset.get_infrared_frame(1);
+    ir_frame_right = frameset.get_infrared_frame(2);
 
-    left = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
-    right = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+//    rs2::align align_to_depth(RS2_STREAM_DEPTH);
+//    frameset = align_to_depth.process(frameset);
+//
+//    if (rs2::motion_frame gyro_frame = frameset.first_or_default(RS2_STREAM_GYRO))
+//    {
+//        rs2_vector gyro_sample = gyro_frame.get_motion_data();
+//        std::cout << "Gyro:" << gyro_sample.x << ", " << gyro_sample.y << ", " << gyro_sample.z << std::endl;
+//    }
 
     return true;
 }
 
 bool device::Camera::endStream()
 {
+    cv::destroyAllWindows();
     pipe.stop();
     _frameCount = 0;
     std::cout << "Stream end" << std::endl;
     return false;
 }
 
-cv::Size device::Camera::getResolution() const
+device::Camera &device::Camera::operator>>(std::array<cv::Mat, 2> &imgs)
 {
-    return cv::Size(_width, _height);
+    imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
+    imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
 }
 
 

@@ -7,8 +7,8 @@
 
 #include "frame_buffer.h"
 #include "../Device/camera.h"
+#include "utils.h"
 #include "../stdafx.h"
-#include <condition_variable>
 
 class ThreadTask
 {
@@ -27,7 +27,7 @@ public:
     void consume();
 
 private:
-    std::mutex _M_frame;
+    std::mutex _mFrame;
     std::unique_ptr<device::Camera> _cameraPtr;
     FrameBuffer _buffer;
     bool _produce_signal, _consume_signal;

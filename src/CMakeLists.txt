@@ -6,6 +6,9 @@ add_executable(pose_detection_display
         Task/thread_task.h
         Task/frame_buffer.cpp
         Task/frame_buffer.h
+        Utils/tool.cpp
+        Utils/tool.h
+        Task/utils.h
 )
 
 target_precompile_headers(pose_detection_display PUBLIC stdafx.h)
