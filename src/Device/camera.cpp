@@ -28,6 +28,7 @@ void device::Camera::setVideoFormat(size_t width, size_t height)
 
 bool device::Camera::setUpStream(size_t fps)
 {
+    std::cout << "Setting up camera...";
     _frameCount = 0;
     cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, fps);
     cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, fps);
@@ -41,6 +42,7 @@ bool device::Camera::setUpStream(size_t fps)
     if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
         depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
 
+    std::cout << "Done" << std::endl;
     return true;
 }
 
@@ -63,6 +65,7 @@ bool device::Camera::endStream()
 {
     pipe.stop();
     _frameCount = 0;
+    std::cout << "Stream end" << std::endl;
     return false;
 }
 

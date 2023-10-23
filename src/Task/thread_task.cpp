@@ -31,6 +31,7 @@ void ThreadTask::init()
 
 void ThreadTask::produce()
 {
+    std::cout << "Start streaming" << std::endl;
     auto startTime = std::chrono::high_resolution_clock::now();
 //    auto t1 = std::chrono::high_resolution_clock::now();
     while (cv::waitKey(1) != 27) {  // press esc to exit
