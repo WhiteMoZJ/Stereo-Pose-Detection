@@ -1,5 +1,6 @@
 //
 // Created by junchau on 10/22/23.
+// Reference: https://github.com/SEU-SuperNova-CVRA/Robomaster2018-SEU-OpenSource
 //
 
 #ifndef FRAME_BUFFER_H
@@ -7,6 +8,7 @@
 
 #include "../stdafx.h"
 
+// frame: with 2 images and time stamp
 struct Frame
 {
     cv::Mat img[2];
@@ -14,10 +16,12 @@ struct Frame
     double timeStamp;
 };
 
+// frame buffer class
+// to push the frames in it
 class FrameBuffer
 {
 public:
-    FrameBuffer(size_t size);
+    explicit FrameBuffer(size_t size);
 
     ~FrameBuffer() = default;
 

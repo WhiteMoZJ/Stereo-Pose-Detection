@@ -8,19 +8,17 @@ device::Camera::Camera()
 {
     _width = 0;
     _height = 0;
-    _framecount = 0;
+    _frameCount = 0;
 }
 
 void device::Camera::setVideoFormat(size_t width, size_t height)
 {
     if (_width == width && _height == height)
     {
-        _framecount = 0;
         return;
     }
     _width = width;
     _height = height;
-    _framecount = 0;
 }
 
 //bool Camera::setExposureTime(int t)
@@ -30,6 +28,7 @@ void device::Camera::setVideoFormat(size_t width, size_t height)
 
 bool device::Camera::setUpStream(size_t fps)
 {
+    _frameCount = 0;
     cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, fps);
     cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, fps);
 
@@ -47,6 +46,7 @@ bool device::Camera::setUpStream(size_t fps)
 
 bool device::Camera::startStream()
 {
+    ++_frameCount;
     rs2::frameset frameset = pipe.wait_for_frames();
 
     // get left and right infrared frames from frameset
@@ -62,7 +62,13 @@ bool device::Camera::startStream()
 bool device::Camera::endStream()
 {
     pipe.stop();
+    _frameCount = 0;
     return false;
+}
+
+cv::Size device::Camera::getResolution() const
+{
+    return cv::Size(_width, _height);
 }
 
 

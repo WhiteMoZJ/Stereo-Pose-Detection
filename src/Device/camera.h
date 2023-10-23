@@ -20,20 +20,27 @@ public:
     cv::Mat left;
     cv::Mat right;
 
-    bool setUpStream(size_t fps = 90);
-    // bool setExposureTime(int t = 0)
     void setVideoFormat(size_t width = 640, size_t height = 480);
+    // bool setExposureTime(int t = 0);
+    bool setUpStream(size_t fps = 90);
 
     // video stream control
     bool startStream();
     bool endStream();
+
+
+    cv::Size getResolution() const;
+    unsigned int getFrameCount() const
+    {
+        return _frameCount;
+    }
 
 private:
     rs2::config cfg;    // realsense config
     rs2::pipeline pipe; // realsense pipeline
 
     unsigned int _width, _height;
-    unsigned int _framecount;
+    unsigned int _frameCount;
 
 };
 }

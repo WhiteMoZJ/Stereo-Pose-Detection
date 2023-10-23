@@ -8,12 +8,13 @@
 #include "frame_buffer.h"
 #include "../Device/camera.h"
 #include "../stdafx.h"
+#include <condition_variable>
 
 class ThreadTask
 {
 public:
     ThreadTask();
-    ThreadTask(const ThreadTask&) = delete;
+    ThreadTask(const ThreadTask&) = delete; // no copied thread
     ~ThreadTask();
 
     // init camera
@@ -28,8 +29,8 @@ public:
 private:
     std::mutex _M_frame;
     std::unique_ptr<device::Camera> _cameraPtr;
-    // FrameBuffer _buffer;
-    cv::Mat _frames[2];
+    FrameBuffer _buffer;
+    bool _produce_signal, _consume_signal;
 };
 
 
