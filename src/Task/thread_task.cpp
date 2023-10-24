@@ -23,14 +23,9 @@ ThreadTask::ThreadTask() :
 
 ThreadTask::~ThreadTask()
 {
-    int time = static_cast<int>(getTimeStamp());
-    printf("[ INFO:END@%2d:%2d:%2d:%3d] Stream End\n",
-           time/3600000, time/60000%60, time/1000%60, time % 1000);
+    threadInfo("END", "Stream End");
     _cameraPtr->endStream();
-
-    time = static_cast<int>(getTimeStamp());
-    printf("[ INFO:END@%2d:%2d:%2d:%3d] Program Exit(0)\n",
-           time/3600000, time/60000%60, time/1000%60, time % 1000);
+    threadInfo("EXIT", "Program Exit(0)");
 }
 
 void ThreadTask::init()
@@ -43,9 +38,7 @@ void ThreadTask::init()
 
 void ThreadTask::produce()
 {
-    int time = static_cast<int>(getTimeStamp());
-    printf("[ INFO:START@%2d:%2d:%2d:%3d] Start Streaming (Press ESC to exit)\n",
-           time/3600000, time/60000%60, time/1000%60, time % 1000);
+    threadInfo("START", "Start Streaming (Press ESC to exit)");
 //    auto t1 = std::chrono::high_resolution_clock::now();
     while (cv::waitKey(1) != 27) {  // press esc to exit
         if (!_consume_signal) break;    // detect if consume thread is terminated
@@ -81,9 +74,7 @@ void ThreadTask::consume()
         PointSet point_set;
         if (!_produce_signal) break;    // detect if produce thread is terminated
         if (!_frameBuffer.getLatest(frame)) {
-            int time = static_cast<int>(getTimeStamp());
-            printf("[ INFO:WARNING@%2d:%2d:%2d:%3d] buffer warning:frame lost\n",
-                   time/3600000, time/60000%60, time/1000%60, time % 1000);
+            threadInfo("WARNING", "buffer warning:frame lost");
             continue;
         }
         lock_frame.unlock();

@@ -79,7 +79,6 @@ device::Camera &device::Camera::operator>>(std::array<cv::Mat, 2> &imgs)
 {
     imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
     imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
-    return *this;
 }
 
 
