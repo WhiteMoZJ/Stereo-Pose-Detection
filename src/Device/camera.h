@@ -17,9 +17,6 @@ public:
     Camera(const Camera&) = delete;
     ~Camera() = default;
 
-    cv::Mat left;
-    cv::Mat right;
-
     rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
     rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
 
@@ -49,6 +46,9 @@ private:
 
     unsigned int _width, _height;
     unsigned int _frameCount;
+
+    cv::Mat cam_mat;    // camera matrix
+    cv::Mat dis_coeff;  // distortion coefficients
 
 };
 }

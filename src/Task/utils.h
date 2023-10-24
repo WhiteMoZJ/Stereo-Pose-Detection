@@ -6,5 +6,6 @@
 #define UTILS_H
 
 #include "../Utils/tool.h"
+#include "../Utils/body_detector.h"
 
 #endif //UTILS_H

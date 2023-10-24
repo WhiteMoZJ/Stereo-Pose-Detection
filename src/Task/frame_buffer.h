@@ -12,8 +12,12 @@
 struct Frame
 {
     std::array<cv::Mat, 2> images;
-    size_t seq;
-    double timeStamp;
+    size_t seq = 0;
+    double timeStamp = 0.f;
+    bool empty() const
+    {
+        return images.empty();
+    }
 };
 
 // frame buffer class

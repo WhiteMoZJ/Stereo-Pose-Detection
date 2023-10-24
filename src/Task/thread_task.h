@@ -6,9 +6,12 @@
 #define THREAD_TASK_H
 
 #include "frame_buffer.h"
+#include "points_buffer.h"
 #include "../Device/camera.h"
 #include "utils.h"
 #include "../stdafx.h"
+
+typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double,std::milli>> timer;
 
 class ThreadTask
 {
@@ -23,14 +26,28 @@ public:
     // load camera frame to buffer
     void produce();
 
-    // run task;
+    // run task
     void consume();
 
+    // display!
+
+    void display();
+
+
 private:
-    std::mutex _mFrame;
+    std::mutex _mFrame, _mPoint;
     std::unique_ptr<device::Camera> _cameraPtr;
-    FrameBuffer _buffer;
+    std::unique_ptr<BodyDetector> _detectorPtr;
+    FrameBuffer _frameBuffer;
+    PointsBuffer _pointsBuffer;
     bool _produce_signal, _consume_signal;
+
+    timer startTime;
+
+    double getTimeStamp()
+    {
+        return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
+    }
 };
 
 

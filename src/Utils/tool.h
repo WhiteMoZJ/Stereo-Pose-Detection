@@ -8,14 +8,13 @@
 #include "../Task/frame_buffer.h"
 #include "../stdafx.h"
 
-namespace debug
-{
 class Tool
 {
 public:
+    Tool() = default;
+    static cv::Mat camFrame;
     static void displayCameraFrame(Frame &frame);
 };
-}
 
 
 #endif //TOOL_H

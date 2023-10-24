@@ -9,6 +9,10 @@ add_executable(pose_detection_display
         Utils/tool.cpp
         Utils/tool.h
         Task/utils.h
+        Utils/body_detector.h
+        Utils/body_detector.cpp
+        Task/points_buffer.cpp
+        Task/points_buffer.h
 )
 
 target_precompile_headers(pose_detection_display PUBLIC stdafx.h)

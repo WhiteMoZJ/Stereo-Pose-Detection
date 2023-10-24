@@ -28,7 +28,7 @@ void device::Camera::setVideoFormat(size_t width, size_t height)
 
 bool device::Camera::setUpStream(size_t fps)
 {
-    std::cout << "Setting up camera...";
+    std::cout << "Setting up Camera...";
     _frameCount = 0;
     cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, fps);
     cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, fps);
@@ -41,6 +41,8 @@ bool device::Camera::setUpStream(size_t fps)
     auto depth_sensor = selected_device.first<rs2::depth_sensor>();
     if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
         depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
+
+
 
     std::cout << "Done" << std::endl;
     return true;
@@ -55,15 +57,13 @@ bool device::Camera::startStream()
     ir_frame_left = frameset.get_infrared_frame(1);
     ir_frame_right = frameset.get_infrared_frame(2);
 
-//    rs2::align align_to_depth(RS2_STREAM_DEPTH);
-//    frameset = align_to_depth.process(frameset);
-//
-//    if (rs2::motion_frame gyro_frame = frameset.first_or_default(RS2_STREAM_GYRO))
-//    {
-//        rs2_vector gyro_sample = gyro_frame.get_motion_data();
-//        std::cout << "Gyro:" << gyro_sample.x << ", " << gyro_sample.y << ", " << gyro_sample.z << std::endl;
-//    }
+//    auto depth_profile = frameset.get_profile();
+//    auto depth_intrin = rs2::video_stream_profile(depth_profile).get_intrinsics();
 
+//    std::cout << depth_intrin.fx << std::endl;
+//    std::cout << depth_intrin.fy << std::endl;
+//    for (float coeff : depth_intrin.coeffs)
+//        std::cout << coeff << std::endl;
     return true;
 }
 
@@ -72,7 +72,6 @@ bool device::Camera::endStream()
     cv::destroyAllWindows();
     pipe.stop();
     _frameCount = 0;
-    std::cout << "Stream end" << std::endl;
     return false;
 }
 
@@ -80,6 +79,7 @@ device::Camera &device::Camera::operator>>(std::array<cv::Mat, 2> &imgs)
 {
     imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
     imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+    return *this;
 }
 
 
