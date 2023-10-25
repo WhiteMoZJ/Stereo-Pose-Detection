@@ -73,7 +73,7 @@ public:
      */
     Camera& operator >> (std::array<cv::Mat, 2> &imgs);
 
-    float fov[2];   // X Y fov
+    float fov[2]{79.144, 63.5818};   // X Y fov
 
     cv::Mat cam_mat;                // camera matrix
     cv::Mat dis_coeff;              // distortion coefficients

@@ -18,7 +18,7 @@ ThreadTask::ThreadTask() :
     // 2. consume thread terminated --> _consume_signal false
     // then produce thread will be terminated, _produce_signal false
 {
-
+    startTime = std::chrono::high_resolution_clock::now();
 }
 
 ThreadTask::~ThreadTask()
@@ -34,7 +34,6 @@ void ThreadTask::init()
     _cameraPtr->setVideoFormat(640, 480);
 //    _cameraPtr->setExposureTime(10);
     _cameraPtr->setUpStream();
-    startTime = std::chrono::high_resolution_clock::now();
 }
 
 void ThreadTask::produce()
@@ -74,14 +73,16 @@ void ThreadTask::consume()
         Frame frame;
         PointSet point_set;
         if (!_produce_signal) break;    // detect if produce thread is terminated
-        if (!_frameBuffer.getLatest(frame) || !frame.empty()) {
-            threadInfo("WARNING", "buffer warning:frame lost");
+        if (!_frameBuffer.getLatest(frame)) {
+            threadInfo("WARNING", "Buffer Warning:Frame lost");
             continue;
         }
         lock_frame.unlock();
-        // !ERROR
+
+        // !ERROR openpose needs RGB frame but there's grey only
 //        if (!frame.empty())
 //            _detectorPtr->detectBody(frame, point_set);
+
         Tool::displayCameraFrame(frame);
     }
     _consume_signal = false;

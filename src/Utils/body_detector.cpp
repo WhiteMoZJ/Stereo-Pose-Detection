@@ -9,7 +9,7 @@ BodyDetector::BodyDetector()
     std::cout << "Body Detection Model Loading...";
     _modelSet.dataset = "MPI";
     // The file path relate to binary execute file
-    _modelSet.modelTxt = cv::samples::findFile("../data/models/openpose_pose_mpi_faster_4_stages.prototxt");
+    _modelSet.modelTxt = cv::samples::findFile("../data/models/pose_deploy_linevec_faster_4_stages.prototxt");
     _modelSet.modelBin = cv::samples::findFile("../data/models/pose_iter_160000.caffemodel");
 
     _modelSet.thresh = 0.08;
@@ -24,11 +24,11 @@ BodyDetector::BodyDetector()
     }
 
     // read the network model
-    Net net = readNet(_modelSet.modelBin, _modelSet.modelTxt);
+    _modelSet.net = readNet(_modelSet.modelBin, _modelSet.modelTxt);
     std::cout << "Done" << std::endl;
 }
 
-void BodyDetector::detectBody(const Frame &frame, PointSet& point_set)
+bool BodyDetector::detectBody(const Frame &frame)
 {
     _modelSet.inputBlob = blobFromImage(frame.images[0], _modelSet.scale, cv::Size(_modelSet.W_in, _modelSet.H_in), cv::Scalar(0, 0, 0), false, false);
     _modelSet.net.setInput(_modelSet.inputBlob);
@@ -45,8 +45,12 @@ void BodyDetector::detectBody(const Frame &frame, PointSet& point_set)
         cv::Point p(-1,-1),pm;
         double conf;
         minMaxLoc(heatMap, nullptr, &conf, nullptr, &pm);
-        if (conf > _modelSet.thresh)
+        if (conf > _modelSet.thresh) {
             p = pm;
-        point_set.points[n] = p;
+            detectPoints[0].emplace_back(p);
+            continue;
+        }
+        return false;
     }
+    return true;
 }

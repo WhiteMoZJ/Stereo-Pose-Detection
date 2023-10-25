@@ -10,7 +10,7 @@
 struct PointSet
 {
     // Each point set contains:
-    std::array<cv::Point, 22> points;   // solved points in 3D
+    std::vector<cv::Point> points;   // solved points in 3D
     size_t frameSeq;                    // from which frame
     size_t pointSeq;                    // its own seq
     double timeStamp;

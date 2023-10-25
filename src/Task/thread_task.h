@@ -61,7 +61,7 @@ private:
     inline void threadInfo(const char *type, const char *info)
     {
         int time = static_cast<int>(getTimeStamp());
-        printf("[ INFO:%s@%2d:%2d:%2d:%3d] %s\n",
+        printf("[ INFO:%s@%02d:%02d:%02d:%03d] %s\n",
                type, time/3600000, time/60000%60, time/1000%60, time % 1000, info);
     }
 

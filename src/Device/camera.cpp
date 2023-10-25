@@ -47,16 +47,11 @@ bool device::Camera::setUpStream(size_t fps)
     if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
         depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
 
+//    !ERROR
 //    if(_exposureTime != 0.f)
 //        selected_device.query_sensors()[1].set_option(RS2_OPTION_EXPOSURE, _exposureTime);
 //    else
 //        selected_device.query_sensors()[1].set_option(RS2_OPTION_AUTO_EXPOSURE_PRIORITY, true);
-
-
-    auto depth_stream = selection.get_stream(RS2_STREAM_DEPTH)
-            .as<rs2::video_stream_profile>();
-    auto i = depth_stream.get_intrinsics();
-    rs2_fov(&i, fov);
 
     std::cout << "Done" << std::endl;
     return true;
@@ -71,13 +66,6 @@ bool device::Camera::startStream()
     ir_frame_left = frameset.get_infrared_frame(1);
     ir_frame_right = frameset.get_infrared_frame(2);
 
-//    auto depth_profile = frameset.get_profile();
-//    auto depth_intrin = rs2::video_stream_profile(depth_profile).get_intrinsics();
-
-//    std::cout << depth_intrin.fx << std::endl;
-//    std::cout << depth_intrin.fy << std::endl;
-//    for (float coeff : depth_intrin.coeffs)
-//        std::cout << coeff << std::endl;
     return true;
 }
 
