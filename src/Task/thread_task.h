@@ -20,17 +20,26 @@ public:
     ThreadTask(const ThreadTask&) = delete; // no copied thread
     ~ThreadTask();
 
-    // init camera
+    /*
+     * @brief   Initiate thread setting
+     */
     void init();
 
-    // load camera frame to buffer
+    /*
+     * @brief   Load camera frame to buffer
+     */
     void produce();
 
-    // run task
+    /*
+     * @brief   Read frame from buffer
+     *          Detect body
+     *          Calculate 3D points
+     */
     void consume();
 
-    // display!
-
+    /*
+     * @brief   Display 3D body points in GUI
+     */
     void display();
 
 
@@ -44,6 +53,11 @@ private:
 
     timer startTime;
 
+    /*
+     * @brief   Output thread information in cmd
+     * @param   *type Info type(START END WARNING ERROR...)
+     * @param   *info Information
+     */
     inline void threadInfo(const char *type, const char *info)
     {
         int time = static_cast<int>(getTimeStamp());
@@ -51,6 +65,10 @@ private:
                type, time/3600000, time/60000%60, time/1000%60, time % 1000, info);
     }
 
+    /*
+     * @brief   Get current time in ms
+     * @return  Time stamp
+     */
     double getTimeStamp()
     {
         return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();

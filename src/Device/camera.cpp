@@ -6,9 +6,10 @@
 
 device::Camera::Camera()
 {
-    _width = 0;
-    _height = 0;
-    _frameCount = 0;
+    _width          = 0;
+    _height         = 0;
+    _frameCount     = 0;
+    _exposureTime   = 0.f;
 }
 
 void device::Camera::setVideoFormat(size_t width, size_t height)
@@ -17,14 +18,18 @@ void device::Camera::setVideoFormat(size_t width, size_t height)
     {
         return;
     }
-    _width = width;
+    _width  = width;
     _height = height;
 }
 
-//bool Camera::setExposureTime(int t)
-//{
-//    return false;
-//}
+void device::Camera::setExposureTime(float t)
+{
+    if (_exposureTime == t)
+    {
+        return;
+    }
+    _exposureTime = t;
+}
 
 bool device::Camera::setUpStream(size_t fps)
 {
@@ -42,7 +47,16 @@ bool device::Camera::setUpStream(size_t fps)
     if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
         depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
 
+//    if(_exposureTime != 0.f)
+//        selected_device.query_sensors()[1].set_option(RS2_OPTION_EXPOSURE, _exposureTime);
+//    else
+//        selected_device.query_sensors()[1].set_option(RS2_OPTION_AUTO_EXPOSURE_PRIORITY, true);
 
+
+    auto depth_stream = selection.get_stream(RS2_STREAM_DEPTH)
+            .as<rs2::video_stream_profile>();
+    auto i = depth_stream.get_intrinsics();
+    rs2_fov(&i, fov);
 
     std::cout << "Done" << std::endl;
     return true;
@@ -79,6 +93,7 @@ device::Camera &device::Camera::operator>>(std::array<cv::Mat, 2> &imgs)
 {
     imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
     imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+    return *this;
 }
 
 

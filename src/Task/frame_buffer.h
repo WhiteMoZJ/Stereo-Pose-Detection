@@ -29,8 +29,18 @@ public:
 
     ~FrameBuffer() = default;
 
+    /*
+     * @brief   Push Frame object to frame buffer
+     * @param   Frame object
+     * @return  Is successful
+     */
     bool push(const Frame& frame);
 
+    /*
+     * @brief   Get latest Frame object from frame buffer
+     * @param   Frame object to assign
+     * @return  Is successful
+     */
     bool getLatest(Frame& frame);
 
 private:

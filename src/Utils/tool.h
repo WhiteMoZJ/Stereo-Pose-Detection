@@ -12,7 +12,11 @@ class Tool
 {
 public:
     Tool() = default;
-    static cv::Mat camFrame;
+
+    /*
+     * @brief   A display method to show stereo camera frames in a frame
+     * @param   Frame object
+     */
     static void displayCameraFrame(Frame &frame);
 };
 

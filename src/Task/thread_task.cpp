@@ -32,6 +32,7 @@ void ThreadTask::init()
 {
     cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);  // Silent OpenCV info
     _cameraPtr->setVideoFormat(640, 480);
+//    _cameraPtr->setExposureTime(10);
     _cameraPtr->setUpStream();
     startTime = std::chrono::high_resolution_clock::now();
 }
@@ -73,7 +74,7 @@ void ThreadTask::consume()
         Frame frame;
         PointSet point_set;
         if (!_produce_signal) break;    // detect if produce thread is terminated
-        if (!_frameBuffer.getLatest(frame)) {
+        if (!_frameBuffer.getLatest(frame) || !frame.empty()) {
             threadInfo("WARNING", "buffer warning:frame lost");
             continue;
         }
