@@ -5,6 +5,12 @@
 #ifndef THREAD_TASK_H
 #define THREAD_TASK_H
 
+/*
+ * Macro to control info output
+ * It will be changed to an option
+ */
+#define INFO
+
 #include "frame_buffer.h"
 #include "points_buffer.h"
 #include "../Device/camera.h"
@@ -17,7 +23,7 @@ class ThreadTask
 {
 public:
     ThreadTask();
-    ThreadTask(const ThreadTask&) = delete; // no copied thread
+    ThreadTask(const ThreadTask&) = delete; // Non-copied thread
     ~ThreadTask();
 
     /*
@@ -44,12 +50,14 @@ public:
 
 
 private:
-    std::mutex _mFrame, _mPoint;
-    std::unique_ptr<device::Camera> _cameraPtr;
-    std::unique_ptr<BodyDetector> _detectorPtr;
+    Frame _displayFrame;                                    // frame to process
+    std::mutex _mFrame, _mPoint;                            // thread lock for buffer
+    std::unique_ptr<device::Camera> _cameraPtr;             // unique Camera object
+    std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
     FrameBuffer _frameBuffer;
     PointsBuffer _pointsBuffer;
-    bool _produce_signal, _consume_signal;
+    bool _produceSignal, _consumeSignal;
+    std::condition_variable _cv;
 
     timer startTime;
 
@@ -60,9 +68,11 @@ private:
      */
     inline void threadInfo(const char *type, const char *info)
     {
+#ifdef INFO
         int time = static_cast<int>(getTimeStamp());
-        printf("[ INFO:%s@%02d:%02d:%02d:%03d] %s\n",
-               type, time/3600000, time/60000%60, time/1000%60, time % 1000, info);
+        printf("[ INFO@%02d:%02d:%02d:%03d] %s:%s\n",
+               time/3600000, time/60000%60, time/1000%60, time % 1000, type, info);
+#endif  //INFO
     }
 
     /*

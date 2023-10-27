@@ -10,13 +10,8 @@ ThreadTask::ThreadTask() :
         _detectorPtr(std::make_unique<BodyDetector>()),
         _frameBuffer(6),
         _pointsBuffer(6),
-        _produce_signal(false),
-        _consume_signal(true)
-    // set consume signal true to make consume working first to start up produce thread
-    // 1. produce thread terminated --> _produce_signal false
-    // the consume thread will be terminated, _consume_signal false
-    // 2. consume thread terminated --> _consume_signal false
-    // then produce thread will be terminated, _produce_signal false
+        _produceSignal(true),
+        _consumeSignal(true)
 {
     startTime = std::chrono::high_resolution_clock::now();
 }
@@ -34,14 +29,15 @@ void ThreadTask::init()
     _cameraPtr->setVideoFormat(640, 480);
 //    _cameraPtr->setExposureTime(10);
     _cameraPtr->setUpStream();
+    threadInfo("START", "Camera Initiated");
 }
 
 void ThreadTask::produce()
 {
     threadInfo("START", "Start Streaming (Press ESC to exit)");
-//    auto t1 = std::chrono::high_resolution_clock::now();
-    while (cv::waitKey(1) != 27) {  // press esc to exit
-        if (!_consume_signal) break;    // detect if consume thread is terminated
+
+    while (cv::waitKey(1) != 27) {
+        if (!_consumeSignal) break;
 
         std::unique_lock<std::mutex> lock_frame(_mFrame);
 
@@ -49,43 +45,59 @@ void ThreadTask::produce()
         std::array<cv::Mat, 2> images;
 
         *_cameraPtr >> images;
-        _produce_signal = _frameBuffer.push(Frame{{images[0], images[1]}, _cameraPtr->getFrameCount(), getTimeStamp()});
-
-        // std::cout << timeStamp << std::endl;
-
-        // Capture period: about 11 ms (1000ms/90)
-//        auto t2 = std::chrono::high_resolution_clock::now();
-//        std::cout << "Capture period: " << (static_cast<std::chrono::duration<double, std::milli>>(t2 - t1)).count() << " ms" << std::endl;
-//        t1 = t2;
-
+        _produceSignal = _frameBuffer.push(Frame{{images[0], images[1]}, _cameraPtr->getFrameCount(), getTimeStamp()});
+        _cv.notify_all();
     }
-    _produce_signal = false;
+    _produceSignal = false;
 }
 
 void ThreadTask::consume()
 {
-    // let this thread sleep for 2ms to prevent read empty buffer
-    std::this_thread::sleep_for(std::chrono::duration<double,std::milli>(2));
     while (cv::waitKey(1) != 27) {
+        if (!_produceSignal) break;
 
         std::unique_lock<std::mutex> lock_frame(_mFrame);
-        std::unique_lock<std::mutex> lock_points(_mPoint);
+        if (_frameBuffer.empty()) {
+            _cv.wait(lock_frame);
+        }
+
         Frame frame;
-        PointSet point_set;
-        if (!_produce_signal) break;    // detect if produce thread is terminated
         if (!_frameBuffer.getLatest(frame)) {
-            threadInfo("WARNING", "Buffer Warning:Frame lost");
+            // Sometimes this thread will read buffer twice before next pushing
             continue;
         }
-        lock_frame.unlock();
+        _displayFrame = frame;
+
+
+        lock_frame.unlock();    // Unlock in advance
+
+//        std::unique_lock<std::mutex> lock_points(_mPoint);
+//        PointSet point_set;
 
         // !ERROR openpose needs RGB frame but there's grey only
 //        if (!frame.empty())
 //            _detectorPtr->detectBody(frame, point_set);
-
-        Tool::displayCameraFrame(frame);
     }
-    _consume_signal = false;
+    _consumeSignal = false;
+}
+
+void ThreadTask::display()
+{
+    while (cv::waitKey(1) != 27) {
+        if (!_produceSignal || !_consumeSignal) break;
+
+        std::unique_lock<std::mutex> lock_frame(_mFrame);
+        if (_displayFrame.empty()) {
+            continue;
+        }
+
+        Tool::displayCameraFrame(_displayFrame);
+        lock_frame.unlock();
+
+    }
+
+    _produceSignal = false;
+    _consumeSignal = false;
 }
 
 

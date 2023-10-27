@@ -6,9 +6,11 @@
 
 BodyDetector::BodyDetector()
 {
-    std::cout << "Body Detection Model Loading...";
+    _pointsCount = 0;
+
     _modelSet.dataset = "MPI";
     // The file path relate to binary execute file
+    // about 200MB to load openpose model
     _modelSet.modelTxt = cv::samples::findFile("../data/models/pose_deploy_linevec_faster_4_stages.prototxt");
     _modelSet.modelBin = cv::samples::findFile("../data/models/pose_iter_160000.caffemodel");
 
@@ -25,7 +27,6 @@ BodyDetector::BodyDetector()
 
     // read the network model
     _modelSet.net = readNet(_modelSet.modelBin, _modelSet.modelTxt);
-    std::cout << "Done" << std::endl;
 }
 
 bool BodyDetector::detectBody(const Frame &frame)
@@ -42,12 +43,11 @@ bool BodyDetector::detectBody(const Frame &frame)
         // Slice heatmap of corresponding body's part.
         cv::Mat heatMap(H, W, CV_32F, _modelSet.result.ptr(0,n));
         // 1 maximum per heatmap
-        cv::Point p(-1,-1),pm;
+        cv::Point pm;
         double conf;
         minMaxLoc(heatMap, nullptr, &conf, nullptr, &pm);
         if (conf > _modelSet.thresh) {
-            p = pm;
-            detectPoints[0].emplace_back(p);
+
             continue;
         }
         return false;

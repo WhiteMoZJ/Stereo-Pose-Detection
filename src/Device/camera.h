@@ -7,6 +7,7 @@
 
 #include <librealsense2/rs.hpp>
 #include "../stdafx.h"
+#include "../Task/frame_buffer.h"
 
 namespace device
 {
@@ -61,7 +62,7 @@ public:
      * @brief   Get frame count
      * @return  _frameCount(private number variable)
      */
-    unsigned int getFrameCount() const
+    size_t getFrameCount() const
     {
         return _frameCount;
     }

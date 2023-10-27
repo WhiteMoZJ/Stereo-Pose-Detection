@@ -14,12 +14,28 @@ using namespace cv::dnn;
 class BodyDetector
 {
 public:
-    std::array<std::vector<cv::Point>, 2> detectPoints;
 
     BodyDetector();
     ~BodyDetector()  = default;
+
+    /*
+     * @brief   Detect body from frame
+     * @param   Frame object
+     * @param   PointSet object
+     * @return  Detect successful
+     */
     bool detectBody(const Frame &frame);
+
+    /*
+     * @brief   Solve body points in 3D
+     * @param
+     */
     void solve3D(const PointSet &points);
+
+    size_t getPointsCount() const
+    {
+        return _pointsCount;
+    }
 private:
     // model parameter structure
 #ifndef MODELSET
@@ -47,6 +63,9 @@ private:
             {6,7}, {1,14}, {14,8}, {8,9},
             {9,10}, {14,11}, {11,12}, {12,13}
     };
+
+    size_t _pointsCount;
+    std::array<std::vector<cv::Point>, 2> _bodyPoints;
 };
 
 

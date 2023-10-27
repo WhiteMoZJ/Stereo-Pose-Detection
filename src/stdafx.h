@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <thread>
+#include <condition_variable>
 #include <opencv2/opencv.hpp>
 
 #endif //STDAFX_H

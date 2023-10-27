@@ -14,9 +14,13 @@ struct Frame
     std::array<cv::Mat, 2> images;
     size_t seq = 0;
     double timeStamp = 0.f;
+
+    /*
+     * @brief   To make sure both the two stereo frames are not empty
+     */
     bool empty() const
     {
-        return images.empty();
+        return images[0].empty() || images[1].empty();
     }
 };
 
@@ -42,6 +46,15 @@ public:
      * @return  Is successful
      */
     bool getLatest(Frame& frame);
+
+    /*
+     * @brief   Get buffer empty status
+     * @return  Empty status
+     */
+    bool empty() const
+    {
+        return _frames.empty();
+    }
 
 private:
     std::vector<Frame> _frames;

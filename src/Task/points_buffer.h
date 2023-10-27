@@ -39,6 +39,15 @@ public:
      */
     bool getLatest(PointSet& points);
 
+    /*
+     * @brief   Get buffer empty status
+     * @return  Empty status
+     */
+    bool empty() const
+    {
+        return _point_sets.empty();
+    }
+
 private:
     std::vector<PointSet> _point_sets;
     std::vector<std::timed_mutex> _mutexs;

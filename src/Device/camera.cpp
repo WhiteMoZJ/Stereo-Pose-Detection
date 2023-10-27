@@ -33,7 +33,6 @@ void device::Camera::setExposureTime(float t)
 
 bool device::Camera::setUpStream(size_t fps)
 {
-    std::cout << "Setting up Camera...";
     _frameCount = 0;
     cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, fps);
     cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, fps);
@@ -53,7 +52,6 @@ bool device::Camera::setUpStream(size_t fps)
 //    else
 //        selected_device.query_sensors()[1].set_option(RS2_OPTION_AUTO_EXPOSURE_PRIORITY, true);
 
-    std::cout << "Done" << std::endl;
     return true;
 }
 
@@ -77,7 +75,7 @@ bool device::Camera::endStream()
     return false;
 }
 
-device::Camera &device::Camera::operator>>(std::array<cv::Mat, 2> &imgs)
+device::Camera &device::Camera::operator >> (std::array<cv::Mat, 2> &imgs)
 {
     imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
     imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());

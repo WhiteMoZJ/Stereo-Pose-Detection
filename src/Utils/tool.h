@@ -18,6 +18,12 @@ public:
      * @param   Frame object
      */
     static void displayCameraFrame(Frame &frame);
+
+    /*
+     * @brief   With some info showing
+     * @param   Frame object
+     */
+    static void displayCameraFrameInfo(Frame &frame);
 };
 
 
