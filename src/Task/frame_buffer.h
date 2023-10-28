@@ -15,7 +15,7 @@ struct Frame
     size_t seq = 0;
     double timeStamp = 0.f;
 
-    /*
+    /**
      * @brief   To make sure both the two stereo frames are not empty
      */
     bool empty() const
@@ -33,21 +33,28 @@ public:
 
     ~FrameBuffer() = default;
 
-    /*
+    /**
      * @brief   Push Frame object to frame buffer
-     * @param   Frame object
+     * @param   frame Frame object
      * @return  Is successful
      */
-    bool push(const Frame& frame);
+    bool push(const Frame &frame);
 
-    /*
+    /**
      * @brief   Get latest Frame object from frame buffer
-     * @param   Frame object to assign
+     * @param   frame Frame object to assign
      * @return  Is successful
      */
-    bool getLatest(Frame& frame);
+    bool getLatest(Frame &frame);
 
-    /*
+    /**
+     * @brief Swap frame between two buffer
+     * @param buffer    To which buffer
+     * @return  Swap successful
+     */
+    bool swapTo(FrameBuffer &buffer);
+
+    /**
      * @brief   Get buffer empty status
      * @return  Empty status
      */

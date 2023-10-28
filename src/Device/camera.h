@@ -22,34 +22,34 @@ public:
     rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
 
 
-    /*
+    /**
      * @brief   Initiate video frame
      * @param   width and height
      */
-    void setVideoFormat(size_t width = 640, size_t height = 480);
+    void setVideoFormat(int width = 640, int height = 480, int fps = 90);
     void setExposureTime(float t = 0.f);
 
-    /*
+    /**
      * @brief   Initiate camera
      * @param   frames per second
      * @return  Is camera start successful
      */
-    bool setUpStream(size_t fps = 90);
+    bool setUpStream();
 
     // video stream control
-    /*
+    /**
      * @brief   Start camera streaming
      * @return  Is streaming
      */
     bool startStream();
 
-    /*
+    /**
      * @brief   End camera streaming
      * @return  Is streaming
      */
     bool endStream();
 
-    /*
+    /**
      * @brief   Get resolution
      * @return  cv::Size(_width, _height)
      */
@@ -58,7 +58,7 @@ public:
         return cv::Size(_width, _height);
     }
 
-    /*
+    /**
      * @brief   Get frame count
      * @return  _frameCount(private number variable)
      */
@@ -67,10 +67,13 @@ public:
         return _frameCount;
     }
 
-    /*
+    void printInfo();
+
+    /**
      * @brief   Operator overloading
-     * @param   cv::Mat array
-     * Transfer Camera frames to Frame images
+
+     Transfer Camera frames to Frame images
+     * @param   imgs cv::Mat array
      */
     Camera& operator >> (std::array<cv::Mat, 2> &imgs);
 
@@ -80,14 +83,17 @@ public:
     cv::Mat dis_coeff;              // distortion coefficients
 
 private:
-    rs2::config cfg;                // realsense config
-    rs2::pipeline pipe;             // realsense pipeline
+    rs2::config _cfg;                // realsense config
+    rs2::pipeline _pipe;             // realsense pipeline
 
-    unsigned int _width, _height;   // frame size
+    rs2::device _selected_device;
+    rs2::pipeline_profile _selection;
+
+    int _width, _height;   // frame size
     unsigned int _frameCount;       // count of frame
     float _exposureTime;            // exposure time
 
-
+    int _fps;
 
 };
 }

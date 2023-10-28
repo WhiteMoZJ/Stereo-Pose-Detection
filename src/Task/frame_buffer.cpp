@@ -32,7 +32,7 @@ bool FrameBuffer::push(const Frame& frame)
     return true;
 }
 
-bool FrameBuffer::getLatest(Frame& frame)
+bool FrameBuffer::getLatest(Frame &frame)
 {
     volatile const size_t headIdx = _headIdx;
 
@@ -47,5 +47,15 @@ bool FrameBuffer::getLatest(Frame& frame)
     frame = _frames[headIdx];
     _lastGetTimeStamp = _frames[headIdx].timeStamp;
 
+    return true;
+}
+
+bool FrameBuffer::swapTo(FrameBuffer &buffer)
+{
+    Frame frame;
+    this->getLatest(frame);
+    if (this->_frames.empty() || !buffer.push(frame)) {
+        return false;
+    }
     return true;
 }

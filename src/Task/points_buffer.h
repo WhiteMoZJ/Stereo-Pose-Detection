@@ -25,21 +25,21 @@ public:
 
     ~PointsBuffer() = default;
 
-    /*
+    /**
      * @brief   Push PointSet object to point set buffer
-     * @param   PointSet object
+     * @param   points PointSet object
      * @return  Is successful
      */
     bool push(const PointSet& points);
 
-    /*
+    /**
      * @brief   Get latest PointSet object from point set buffer
-     * @param   PointSet object to assign
+     * @param   points PointSet object to assign
      * @return  Is successful
      */
     bool getLatest(PointSet& points);
 
-    /*
+    /**
      * @brief   Get buffer empty status
      * @return  Empty status
      */

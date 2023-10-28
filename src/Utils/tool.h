@@ -13,15 +13,15 @@ class Tool
 public:
     Tool() = default;
 
-    /*
-     * @brief   A display method to show stereo camera frames in a frame
-     * @param   Frame object
+    /**
+     * @brief  A display method to show stereo camera frames in a frame
+     * @param   frame Frame object
      */
     static void displayCameraFrame(Frame &frame);
 
-    /*
+    /**
      * @brief   With some info showing
-     * @param   Frame object
+     * @param   frame Frame object
      */
     static void displayCameraFrameInfo(Frame &frame);
 };

@@ -18,15 +18,15 @@ public:
     BodyDetector();
     ~BodyDetector()  = default;
 
-    /*
+    /**
      * @brief   Detect body from frame
-     * @param   Frame object
-     * @param   PointSet object
+     * @param   frame Frame object
+     * @param   points PointSet object
      * @return  Detect successful
      */
     bool detectBody(const Frame &frame);
 
-    /*
+    /**
      * @brief   Solve body points in 3D
      * @param
      */
