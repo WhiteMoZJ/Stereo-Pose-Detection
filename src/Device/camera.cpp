@@ -11,6 +11,7 @@ device::Camera::Camera()
     _fps            = 0;
     _frameCount     = 0;
     _exposureTime   = 0.f;
+    _open           = false;
 }
 
 void device::Camera::setVideoFormat(int width, int height, int fps)
@@ -36,30 +37,54 @@ void device::Camera::setExposureTime(float t)
 bool device::Camera::setUpStream()
 {
     _frameCount = 0;
-    _cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, _fps);
-    _cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, _fps);
-
+    _selected_device = nullptr;
+    int failed_count = 0;
     // disable emitter
-    _selection = _pipe.start(_cfg);
-    _selected_device = _selection.get_device();
-    if (!_selected_device)
-        return false;
+    while (!_selected_device) {
+        if (failed_count == 5)
+            // Restart 5 times
+            return false;
+        try {
+            _cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, _fps);
+            _cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, _fps);
+
+            _selection = _pipe.start(_cfg);
+            _selected_device = _selection.get_device();
+            break;
+        }
+        catch(const rs2::camera_disconnected_error& e) {
+            std::cerr << "ERROR: Device Disconnected" << std::endl;
+        }
+        catch (const rs2::recoverable_error& e)
+        {
+            std::cerr << "ERROR: Operation Failed, Please Try Again" << std::endl;
+        }
+        catch (const rs2::error& e)
+        {
+            std::cerr << "ERROR: Some Other Error Occurred" << std::endl;
+        }
+        failed_count++;
+    }
+
     auto depth_sensor = _selected_device.first<rs2::depth_sensor>();
     if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
         depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
-
+    _open = true;
     return true;
 }
 
 bool device::Camera::startStream()
 {
-    ++_frameCount;
     rs2::frameset frameset = _pipe.wait_for_frames();
-
+    if (!frameset) {
+        _open = false;
+        return false;
+    }
     // get left and right infrared frames from frameset
     ir_frame_left = frameset.get_infrared_frame(1);
     ir_frame_right = frameset.get_infrared_frame(2);
 
+    ++_frameCount;
     return true;
 }
 
@@ -67,8 +92,9 @@ bool device::Camera::endStream()
 {
     cv::destroyAllWindows();
     _pipe.stop();
+    _open = false;
     _frameCount = 0;
-    return false;
+    return true;
 }
 
 void device::Camera::printInfo()

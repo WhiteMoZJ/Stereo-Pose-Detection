@@ -69,6 +69,11 @@ public:
 
     void printInfo();
 
+    bool isOpened() const
+    {
+        return _open;
+    }
+
     /**
      * @brief   Operator overloading
 
@@ -94,6 +99,8 @@ private:
     float _exposureTime;            // exposure time
 
     int _fps;
+
+    bool _open;
 
 };
 }

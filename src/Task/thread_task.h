@@ -10,7 +10,6 @@
  * It will be changed to an option
  */
 #define INFO
-// #define TIMER
 
 #include "frame_buffer.h"
 #include "points_buffer.h"
@@ -88,10 +87,6 @@ private:
     {
         return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
     }
-
-#ifdef TIMER
-    timer start;
-#endif
 };
 
 

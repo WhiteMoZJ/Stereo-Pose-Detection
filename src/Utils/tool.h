@@ -41,11 +41,11 @@ public:
      * @param   frame camera frame
      * @return  Is GUI running
      */
-    bool showImage(Frame& frame);
+    bool showImage(Frame& frame, bool open);
 
 private:
     void clear();
-    void showMainContents(Frame &frame);
+    void showMainContents(Frame &frame, bool open);
     static void glfw_error_callback(int error, const char* description)
     {
         fprintf(stderr, "GLFW Error %d: %s\n", error, description);

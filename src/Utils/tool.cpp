@@ -56,10 +56,8 @@ bool Gui::init(const char* window_name)
     return true;
 }
 
-bool Gui::showImage(Frame &frame)
+bool Gui::showImage(Frame &frame, bool open)
 {
-    if (frame.empty())
-        return false;
     if (!glfwWindowShouldClose(_window)) {
         clear();
 
@@ -68,10 +66,10 @@ bool Gui::showImage(Frame &frame)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        showMainContents(frame);
+        showMainContents(frame, open);
 
-        {
-            ImGui::Begin("camera");
+        ImGui::Begin("camera");
+        if (open) {
             cv::Mat merged_img(frame.images[0].rows, frame.images[0].cols * 2 + 1, frame.images[0].type(),
                                cv::Scalar(0));
             frame.images[0].copyTo(merged_img.colRange(0, frame.images[0].cols));
@@ -89,10 +87,12 @@ bool Gui::showImage(Frame &frame)
 
             ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(_texture)),
                          ImVec2(static_cast<float>(merged_img.cols), static_cast<float>(merged_img.rows)));
-            ImGui::End();
-            ImGui::Render();
         }
 
+        ImGui::End();
+
+
+        ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(_window);
 
@@ -112,21 +112,25 @@ void Gui::clear()
     {
         glDeleteTextures(1, &_texture);
     }
-    _texture = 0;
 }
 
-void Gui::showMainContents(Frame &frame)
+void Gui::showMainContents(Frame &frame, const bool open)
 {
     ImGui::Begin("options");
-    ImGui::Checkbox("debug message", &_cameraWindow);
-    ImGui::Text("%.3f ms/frame (%.1f FPS)",
-                1000.0f / _io->Framerate, _io->Framerate);
-    if (_cameraWindow) {
-        ImGui::Text("counter:       %zu", frame.seq);
-        ImGui::Text("time stamp:    %.3f", frame.timeStamp);
-        ImGui::Text("run time:      %02d:%02d:%02d.%03d",
-                    (int)frame.timeStamp/3600000, (int)frame.timeStamp/60000%60, (int)frame.timeStamp/1000%60, (int)frame.timeStamp%1000);
+    if (open) {
+        ImGui::Checkbox("debug message", &_cameraWindow);
+        ImGui::Text("%.3f ms/frame (%.1f FPS)",
+                    1000.0f / _io->Framerate, _io->Framerate);
+        if (_cameraWindow) {
+            ImGui::Text("counter:       %zu", frame.seq);
+            ImGui::Text("time stamp:    %.3f", frame.timeStamp);
+            ImGui::Text("run time:      %02d:%02d:%02d.%03d",
+                        (int) frame.timeStamp / 3600000, (int) frame.timeStamp / 60000 % 60,
+                        (int) frame.timeStamp / 1000 % 60, (int) frame.timeStamp % 1000);
+        }
     }
+    else
+        ImGui::Text("No device connected");
     ImGui::ColorEdit3("background color", (float*)&_clear_color);
 
     ImGui::End();

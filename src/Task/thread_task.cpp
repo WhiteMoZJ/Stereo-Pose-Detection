@@ -13,7 +13,7 @@ ThreadTask::ThreadTask() :
         _backBuffer(6),
         _pointsBuffer(6),
         _signal(true),
-        _dis(false)
+        _dis(true)
 {
     startTime = std::chrono::high_resolution_clock::now();
 
@@ -31,21 +31,32 @@ void ThreadTask::init()
     cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);  // Silent OpenCV info
     _cameraPtr->setVideoFormat(640, 480);
 //    _cameraPtr->setExposureTime(10);
-    if (_cameraPtr->setUpStream()) {
-        _cameraPtr->printInfo();
-        threadInfo(MSG_START, "Camera Initiated");
-    }
 }
 
 void ThreadTask::produce()
 {
-    threadInfo(MSG_START, "Start Streaming...");
+    if (!_cameraPtr->setUpStream()) {
+        _signal = false;
+        threadInfo(MSG_ERR, "No device connect");
+    }
+    else {
+        _cameraPtr->printInfo();
+        threadInfo(MSG_START, "Camera Initiated");
+        threadInfo(MSG_START, "Start Streaming...");
+    }
+
+    int failed_count = 0;
+
     for (;;) {
         if (!_signal) break;
-#ifdef TIMER
-        start = std::chrono::high_resolution_clock::now();
-#endif
-        _cameraPtr->startStream();
+
+        if (!_cameraPtr->startStream()) {
+            // TODO: set a restart function
+//            threadInfo(MSG_WARN, "Trying reconnecting...");
+//            _cameraPtr->setUpStream();
+            continue;
+        }
+
         std::array<cv::Mat, 2> images;
 
         *_cameraPtr >> images;
@@ -77,13 +88,6 @@ void ThreadTask::consume()
 //            _detectorPtr->detectBody(frame, point_set);
 
         _dis = true;
-#ifdef TIMER
-        // This is frame loading time
-        timer end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double,std::milli> duration = end - start;
-        std::cout << duration.count() << "ms" << std::endl;
-        start = end;
-#endif
     }
     _signal = false;
 }
@@ -95,10 +99,10 @@ void ThreadTask::display()
         _signal = false;
         return;
     }
-    threadInfo(MSG_START, "GUI Initiated, Display Start");
+    threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
     for(;;) {
-        if (!_dis) continue;
-        if (!_guiPtr->showImage(_displayFrame)) break;
+        if (!_dis && _cameraPtr->isOpened()) continue;
+        if (!_guiPtr->showImage(_displayFrame, _cameraPtr->isOpened())) break;
     }
 
     _signal = false;
