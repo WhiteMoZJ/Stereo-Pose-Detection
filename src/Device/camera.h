@@ -55,7 +55,7 @@ public:
      */
     cv::Size getResolution() const
     {
-        return cv::Size(_width, _height);
+        return {_width, _height};
     }
 
     /**

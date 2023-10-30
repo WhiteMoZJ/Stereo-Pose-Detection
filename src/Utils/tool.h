@@ -8,22 +8,54 @@
 #include "../Task/frame_buffer.h"
 #include "../stdafx.h"
 
-class Tool
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_impl_glfw.h"
+#include "../imgui/imgui_impl_opengl3.h"
+#include "../imgui/imgui_impl_opengl3_loader.h"
+#include <GLFW/glfw3.h>
+
+class Debug
 {
 public:
-    Tool() = default;
+    Debug() = default;
+};
+
+class Gui
+{
+public:
+    Gui();
+    Gui(const Gui&) = delete;
+    ~Gui();
 
     /**
-     * @brief  A display method to show stereo camera frames in a frame
-     * @param   frame Frame object
+     * @brief   Initiate GUI create by Imgui
+     *
+     * (Must be used in the thread where showImage() is)
+     * @param   window_name
+     * @return  Initiate successful
      */
-    static void displayCameraFrame(Frame &frame);
+    bool init(const char* window_name = "window");
 
     /**
-     * @brief   With some info showing
-     * @param   frame Frame object
+     * @brief   Show GUI
+     * @param   frame camera frame
+     * @return  Is GUI running
      */
-    static void displayCameraFrameInfo(Frame &frame);
+    bool showImage(Frame& frame);
+
+private:
+    void clear();
+    void showMainContents(Frame &frame);
+    static void glfw_error_callback(int error, const char* description)
+    {
+        fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+    }
+
+    GLFWwindow* _window{};
+    GLuint _texture;
+    ImVec4 _clear_color;
+    ImGuiIO* _io{};
+    bool _cameraWindow;
 };
 
 

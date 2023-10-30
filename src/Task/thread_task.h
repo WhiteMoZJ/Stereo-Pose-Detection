@@ -20,6 +20,15 @@
 
 typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double,std::milli>> timer;
 
+enum MSGType
+{
+    MSG_START   = 0,
+    MSG_END     = 1,
+    MSG_EXIT    = 2,
+    MSG_WARN    = 3,
+    MSG_ERR     = 4
+};
+
 class ThreadTask
 {
 public:
@@ -44,27 +53,32 @@ public:
      */
     void consume();
 
+    void display();
 
 private:
-#ifdef TIMER
-    timer start;
-#endif
-    std::mutex _mPoint;                            // thread lock for buffer
     std::unique_ptr<device::Camera> _cameraPtr;             // unique Camera object
-    std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
+    // std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
+    std::unique_ptr<Gui> _guiPtr;
+
     FrameBuffer _frontBuffer, _backBuffer;
     PointsBuffer _pointsBuffer;
-    bool _produceSignal, _consumeSignal;
+    bool _signal, _dis;
+    // _signal to detect thread status
+    // _dis to control v-sync
     std::condition_variable _cv;
 
+    Frame _displayFrame;
+
     timer startTime;
+
+    std::array<const char*, 5> _msgs{"START", "END", "EXIT", "WARNING", "ERROR"};
 
     /**
      * @brief  Output thread information in cmd.
      * @param type Info type(START END WARNING ERROR...)
      * @param info Information
     */
-    inline void threadInfo(const char *type, const char *info);
+    inline void threadInfo(MSGType type, const char *info);
 
     /**
      * @brief   Get current time in ms
@@ -74,6 +88,10 @@ private:
     {
         return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
     }
+
+#ifdef TIMER
+    timer start;
+#endif
 };
 
 
