@@ -8,10 +8,10 @@
 #include "../Task/frame_buffer.h"
 #include "../stdafx.h"
 
-#include "../imgui/imgui.h"
-#include "../imgui/imgui_impl_glfw.h"
-#include "../imgui/imgui_impl_opengl3.h"
-#include "../imgui/imgui_impl_opengl3_loader.h"
+#include "../Imgui/imgui.h"
+#include "../Imgui/imgui_impl_glfw.h"
+#include "../Imgui/imgui_impl_opengl3.h"
+#include "../Imgui/imgui_impl_opengl3_loader.h"
 #include <GLFW/glfw3.h>
 
 class Debug
