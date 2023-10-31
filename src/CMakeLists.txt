@@ -1,4 +1,4 @@
-set(IMGUI_DIR imgui)
+set(IMGUI_DIR Imgui)
 set(IMGUI_SRC
         ${IMGUI_DIR}/imgui.cpp
         ${IMGUI_DIR}/imgui_impl_opengl3.cpp
