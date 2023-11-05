@@ -6,12 +6,13 @@ set(IMGUI_SRC
         ${IMGUI_DIR}/imgui_draw.cpp
         ${IMGUI_DIR}/imgui_widgets.cpp
         ${IMGUI_DIR}/imgui_tables.cpp
+
 )
 
 add_executable(pose_detection_display
         main.cpp
-        Device/camera.cpp
-        Device/camera.h
+        Device/mv_camera.cpp
+        Device/mv_camera.h
         Task/thread_task.cpp
         Task/thread_task.h
         Task/frame_buffer.cpp
@@ -21,8 +22,6 @@ add_executable(pose_detection_display
         Task/utils.h
         Utils/body_detector.h
         Utils/body_detector.cpp
-        Task/points_buffer.cpp
-        Task/points_buffer.h
         ${IMGUI_SRC}
 )
 

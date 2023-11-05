@@ -74,8 +74,7 @@ bool Gui::showImage(Frame &frame, bool open)
                                cv::Scalar(0));
             frame.images[0].copyTo(merged_img.colRange(0, frame.images[0].cols));
             frame.images[1].copyTo(merged_img.colRange(frame.images[1].cols + 1, merged_img.cols));
-            if (merged_img.type() != CV_8UC3)
-                cv::cvtColor(merged_img, merged_img, cv::COLOR_GRAY2RGBA);
+            cv::cvtColor(merged_img, merged_img, cv::COLOR_RGB2BGRA);
 
             glGenTextures(1, &_texture);
             glBindTexture(GL_TEXTURE_2D, _texture);

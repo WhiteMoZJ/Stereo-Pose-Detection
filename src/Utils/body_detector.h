@@ -7,7 +7,6 @@
 
 #include "../stdafx.h"
 #include "../Task/frame_buffer.h"
-#include "../Task/points_buffer.h"
 
 using namespace cv::dnn;
 
@@ -30,7 +29,7 @@ public:
      * @brief   Solve body points in 3D
      * @param
      */
-    void solve3D(const PointSet &points);
+    void solve3D();
 
     size_t getPointsCount() const
     {

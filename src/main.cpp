@@ -1,5 +1,9 @@
 #include "Task/thread_task.h"
 #include "stdafx.h"
+#include "linux/videodev2.h"
+#include <libv4l2.h>
+
+unsigned char           * g_pRgbBuffer;
 
 int main()
 {
