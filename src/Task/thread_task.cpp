@@ -5,16 +5,17 @@
 #include "thread_task.h"
 #include <opencv2/core/utils/logger.hpp>
 
+double time1, time2;
+
 ThreadTask::ThreadTask() :
         _cameraPtr(std::make_unique<device::MVCamera>()),
         _detectorPtr(std::make_unique<BodyDetector>()),
         _guiPtr(std::make_unique<Gui>()),
         _frontBuffer(6),
         _backBuffer(6),
-        _signal(true),
+        _signal(false),
         _dis(true)
 {
-    startTime = std::chrono::high_resolution_clock::now();
 
 }
 
@@ -36,10 +37,11 @@ void ThreadTask::init()
     }
     else {
 //        _cameraPtr->printInfo();
-
+        _signal = true;
         threadInfo(MSG_START, "Camera Initiated");
         threadInfo(MSG_START, "Start Streaming...");
     }
+    startTime = std::chrono::high_resolution_clock::now();
 }
 
 void ThreadTask::produce()
@@ -48,11 +50,8 @@ void ThreadTask::produce()
         if (!_signal) break;
 
         if (!_cameraPtr->startStream()) continue;
-
         std::array<cv::Mat, 2> images;
-
         *_cameraPtr >> images;
-
         _cameraPtr->endStream();
 
         if (!_backBuffer.push(Frame{images, _cameraPtr->getFrameCount(), getTimeStamp()}))
@@ -69,19 +68,23 @@ void ThreadTask::consume()
     for (;;) {
         if (!_signal) break;
 
-        Frame frame;
-        if (_frontBuffer.empty() || !_frontBuffer.getLatest(frame)) {
+
+        if (!_frontBuffer.getLatest(_displayFrame)) {
             // Sometimes this thread will read buffer twice before next pushing
-            _dis = false;
             continue;
         }
-        _displayFrame = frame;
+        _dis = true;
 
-        // !ERROR openpose needs RGB frame but there's grey only
+        Frame frame = _displayFrame;
+
+
+
+        // !WARNING openpose needs RGB frame
+        // TODO: too slow with openpose (2fps)
 //        if (!frame.empty()) {
 //            _detectorPtr->detectBody(frame);
 //        }
-        _dis = true;
+
 
     }
     _signal = false;
@@ -97,8 +100,9 @@ void ThreadTask::display()
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
 
     for(;;) {
-        if (!_dis && _cameraPtr->isOpened()) continue;
+        if (!_dis) continue;
         if (!_guiPtr->showImage(_displayFrame, _dis)) break;
+        // 1 ms lagging time to display
         _dis = false;
     }
 

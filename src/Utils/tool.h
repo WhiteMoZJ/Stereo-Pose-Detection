@@ -6,6 +6,7 @@
 #define TOOL_H
 
 #include "../Task/frame_buffer.h"
+#include "../Device/mv_camera.h"
 #include "../stdafx.h"
 
 #include "../Imgui/imgui.h"
@@ -34,7 +35,7 @@ public:
      * @param   window_name
      * @return  Initiate successful
      */
-    bool init(const char* window_name = "window");
+    bool init(const char* window_name = "window", int width = 1600, int height = 900);
 
     /**
      * @brief   Show GUI
@@ -45,7 +46,7 @@ public:
 
 private:
     void clear();
-    void showMainContents(Frame &frame, bool open);
+    void showMainContents(Frame &frame);
     static void glfw_error_callback(int error, const char* description)
     {
         fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -55,7 +56,7 @@ private:
     GLuint _texture;
     ImVec4 _clear_color;
     ImGuiIO* _io{};
-    bool _cameraWindow;
+    bool _cameraWindow, _vsync;
 };
 
 

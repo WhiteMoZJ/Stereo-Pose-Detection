@@ -19,19 +19,21 @@ public:
 
     /**
  * @brief   Initiate video frame
- * @param   width and height
+ * @param   width   frame width
+ * @param   height  frame height
  */
     void setVideoFormat(int width = 640, int height = 480);
 
     /**
      * @brief   Set Camera Exposure Time
      * @param   t Exposure Time(ms)
+     *
+     * if t == 0 auto exposure
      */
     void setExposureTime(double t = 0.f);
 
     /**
      * @brief   Initiate camera
-     * @param   frames per second
      * @return  Is camera start successful
      */
     bool setUpCam();
@@ -84,8 +86,8 @@ private:
     unsigned char           * g_pRgbBuffer;
 
     int                     _cameraCounts;
-    int                     _status = -1;
-    int                     _camera = 1;
+    int                     _status;
+    int                     _camera;
     tSdkCameraDevInfo       _cameraEnumList;
     tSdkCameraCapbility     _capability;      // device info
     tSdkFrameHead           _frameInfo;
