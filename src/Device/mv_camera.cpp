@@ -4,28 +4,29 @@
 
 #include "mv_camera.h"
 
+using namespace device;
 
-device::MVCamera::MVCamera() :
-        _width(0),
-        _height(0),
-        _exposureTime(0),
+MVCamera::MVCamera() :
+        settings({0, 1}),
         _frameCount(0),
         _status(0),
         _camera(0),
         _open(false),
         _channel(0)
 {
+    _width = 0;
+    _height = 0;
     CameraSdkInit(1);
 }
 
-device::MVCamera::~MVCamera()
+MVCamera::~MVCamera()
 {
     _open = false;
     CameraUnInit(_camera);
     free(g_pRgbBuffer);
 }
 
-void device::MVCamera::setVideoFormat(int width, int height)
+void MVCamera::setVideoFormat(int width, int height)
 {
     if (_width == width && _height == height)
     {
@@ -36,16 +37,16 @@ void device::MVCamera::setVideoFormat(int width, int height)
 }
 
 
-void device::MVCamera::setExposureTime(double t)
+void MVCamera::setExposureTime(float t)
 {
-    if (_exposureTime == t)
+    if (settings.exposureTime == t)
     {
         return;
     }
-    _exposureTime = t;
+    settings.exposureTime = t;
 }
 
-bool device::MVCamera::setUpCam()
+bool MVCamera::setUpCam()
 {
     // Initiate camera connection
     _status = CameraEnumerateDevice(&_cameraEnumList,&_cameraCounts);
@@ -63,21 +64,13 @@ bool device::MVCamera::setUpCam()
     g_pRgbBuffer = (unsigned char*)malloc(_capability.sResolutionRange.iHeightMax*_capability.sResolutionRange.iWidthMax*3);
     CameraPlay(_camera);
 
-    // Set manual exposure
-    if (_exposureTime != 0.f) {
-        CameraSetAeState(_camera, FALSE);
-        CameraSetExposureTime(_camera, _exposureTime * 1000.);
-        CameraSetAeAnalogGainRange(_camera, 2, 10);
-    }
-
-    CameraSetIspOutFormat(_camera,CAMERA_MEDIA_TYPE_BGR8);
-
     _open = true;
     return true;
 }
 
 bool device::MVCamera::startStream()
 {
+    CameraSetIspOutFormat(_camera,CAMERA_MEDIA_TYPE_BGR8);
     if (CameraGetImageBuffer(_camera,&_frameInfo,&_pbyBuffer,1000) == CAMERA_STATUS_SUCCESS) {
         CameraImageProcess(_camera, _pbyBuffer, g_pRgbBuffer,&_frameInfo);
         _frameCount++;
@@ -86,24 +79,35 @@ bool device::MVCamera::startStream()
     return false;
 }
 
-void device::MVCamera::endStream()
+void MVCamera::endStream()
 {
     // Need to release buffer after getting
     CameraReleaseImageBuffer(_camera,_pbyBuffer);
 }
 
-device::MVCamera &device::MVCamera::operator >> (std::array<cv::Mat, 2> &images)
+MVCamera &MVCamera::operator >> (std::array<cv::Mat, 2> &images)
 {
     cv::Mat frame {cv::Size(_frameInfo.iWidth,_frameInfo.iHeight), CV_8UC3, g_pRgbBuffer};
     // resize frame INTER_NEAREST method could be the fastest
     cv::resize(frame, frame, cv::Size(_width, _height), 0, 0, cv::INTER_NEAREST_EXACT);
     frame.copyTo(images[0]);
     frame.copyTo(images[1]);
+    // TODO: I need 2 cameras to build a stereo
     return *this;
 }
 
-void device::MVCamera::printInfo()
+void MVCamera::changeExposureTime()
+{
+    if (settings.exposureTime == 0.f)
+        //! if set exposure time 0, the camera will be not responding for a while
+        CameraSetAeState(_camera, TRUE);
+    else {
+        CameraSetAeState(_camera, FALSE);
+        CameraSetExposureTime(_camera, settings.exposureTime * 1000.);
+    }
+}
+
+void MVCamera::printInfo()
 {
 
 }
-

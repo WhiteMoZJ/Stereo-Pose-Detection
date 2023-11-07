@@ -42,11 +42,22 @@ public:
      * @param   frame camera frame
      * @return  Is GUI running
      */
-    bool showImage(Frame& frame, bool open);
+    bool showImage(Frame& frame, CameraSettings &settings, bool open);
 
 private:
     void clear();
+    /**
+     * @brief Show frame detail information
+     * @param frame
+     */
     void showMainContents(Frame &frame);
+
+    /**
+     * @brief Show camera runtime settings
+     * @param settings Camera Settings
+     */
+    void showCameraSettings(CameraSettings &settings);
+
     static void glfw_error_callback(int error, const char* description)
     {
         fprintf(stderr, "GLFW Error %d: %s\n", error, description);

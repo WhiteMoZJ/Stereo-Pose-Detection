@@ -51,7 +51,15 @@ public:
      */
     void consume();
 
+    /**
+     * @brief   Display in GUI
+     */
     void display();
+
+    /**
+     * @brief   Real-time input
+     */
+    void input();
 
 private:
     std::unique_ptr<device::MVCamera> _cameraPtr;             // unique Camera object

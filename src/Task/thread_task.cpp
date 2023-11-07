@@ -16,7 +16,7 @@ ThreadTask::ThreadTask() :
         _signal(false),
         _dis(true)
 {
-
+    startTime = std::chrono::high_resolution_clock::now();
 }
 
 ThreadTask::~ThreadTask()
@@ -41,7 +41,6 @@ void ThreadTask::init()
         threadInfo(MSG_START, "Camera Initiated");
         threadInfo(MSG_START, "Start Streaming...");
     }
-    startTime = std::chrono::high_resolution_clock::now();
 }
 
 void ThreadTask::produce()
@@ -60,7 +59,6 @@ void ThreadTask::produce()
         // push frame to _frontBuffer
         _backBuffer.swapTo(_frontBuffer);
     }
-    _signal = false;
 }
 
 void ThreadTask::consume()
@@ -87,7 +85,6 @@ void ThreadTask::consume()
 
 
     }
-    _signal = false;
 }
 
 void ThreadTask::display()
@@ -101,12 +98,26 @@ void ThreadTask::display()
 
     for(;;) {
         if (!_dis) continue;
-        if (!_guiPtr->showImage(_displayFrame, _dis)) break;
+        if (!_guiPtr->showImage(_displayFrame, _cameraPtr->settings, _dis)) break;
         // 1 ms lagging time to display
         _dis = false;
     }
 
     _signal = false;
+}
+
+void ThreadTask::input()
+{
+    /*
+     * set real-time settings and input
+     * in a individual thread
+     * to prevent fps to drop
+     */
+    for (;;) {
+        if (!_signal) break;
+        _cameraPtr->changeExposureTime();
+    }
+
 }
 
 void ThreadTask::threadInfo(MSGType type, const char *info)

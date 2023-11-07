@@ -50,14 +50,14 @@ bool Gui::init(const char* window_name, int width, int height)
     _io = &ImGui::GetIO(); (void)&_io;
     _io->IniFilename = "../configs/config.ini";
 
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsClassic();
 
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     return true;
 }
 
-bool Gui::showImage(Frame &frame, bool open)
+bool Gui::showImage(Frame &frame, CameraSettings &settings, bool open)
 {
     cv::Mat merged_img(frame.images[0].rows, frame.images[0].cols * 2 + 1,
                        frame.images[0].type(),cv::Scalar(0));
@@ -91,6 +91,7 @@ bool Gui::showImage(Frame &frame, bool open)
                 ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(_texture)),
                              ImVec2(static_cast<float>(merged_img.cols), static_cast<float>(merged_img.rows)));
                 showMainContents(frame);
+                showCameraSettings(settings);
             }
             ImGui::End();
         }
@@ -132,10 +133,16 @@ void Gui::showMainContents(Frame &frame)
                         (int) frame.timeStamp / 3600000, (int) frame.timeStamp / 60000 % 60,
                         (int) frame.timeStamp / 1000 % 60, (int) frame.timeStamp % 1000);
         }
-        ImGui::ColorEdit3("background color", (float *) &_clear_color);
+//        ImGui::ColorEdit3("background color", (float *) &_clear_color);
     }
+}
 
-    // ImGui::End();
+void Gui::showCameraSettings(CameraSettings &settings)
+{
+    if (ImGui::CollapsingHeader("settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::SliderFloat("size", &settings.size, 0.5, 2, "%.2f x");
+        ImGui::SliderFloat("exposure time(0 for auto)", &settings.exposureTime, 0.0f, 10.0f, "%.4f ms");
+    }
 }
 
 

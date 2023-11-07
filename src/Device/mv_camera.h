@@ -8,6 +8,12 @@
 #include <opencv2/opencv.hpp>
 #include <MVSDK/CameraApi.h>
 
+struct CameraSettings
+{
+    float exposureTime;
+    float size;
+};
+
 namespace device
 {
 class MVCamera
@@ -30,7 +36,7 @@ public:
      *
      * if t == 0 auto exposure
      */
-    void setExposureTime(double t = 0.f);
+    void setExposureTime(float t = 0.f);
 
     /**
      * @brief   Initiate camera
@@ -68,6 +74,8 @@ public:
         return _frameCount;
     }
 
+    void changeExposureTime();
+
     void printInfo();
 
     bool isOpened() const
@@ -77,13 +85,14 @@ public:
 
     MVCamera& operator >> (std::array<cv::Mat, 2> &images);
 
+    CameraSettings settings;
+
 private:
-    int _height, _width;
-    double _exposureTime;
+    int _width, _height;
     unsigned int _frameCount;       // count of frame
     bool _open;
 
-    unsigned char           * g_pRgbBuffer;
+    unsigned char           *g_pRgbBuffer;
 
     int                     _cameraCounts;
     int                     _status;
