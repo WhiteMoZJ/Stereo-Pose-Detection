@@ -9,7 +9,7 @@ set(IMGUI_SRC
 
 )
 
-add_executable(pose_detection_display
+add_executable(stereo_pose_detection
         main.cpp
         Task/thread_task.cpp
         Task/thread_task.h
@@ -17,4 +17,4 @@ add_executable(pose_detection_display
         ${IMGUI_SRC}
 )
 
-target_precompile_headers(pose_detection_display PUBLIC stdafx.h)
+target_precompile_headers(stereo_pose_detection PUBLIC stdafx.h)

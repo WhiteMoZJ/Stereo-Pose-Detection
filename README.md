@@ -1,13 +1,17 @@
-# Pose Detection and Display
-## Operating System
+# Stereo Pose Detection
+## :link: Links: 
+- Project: https://github.com/WhiteMoZJ/Stereo-Pose-Detection 
+- Model Download: https://github.com/CMU-Perceptual-Computing-Lab/openpose/tree/master/models/pose/mpi
+
+## :computer: Operating System
 Ubuntu 22.04
 
-## Hardware
+## :electric_plug: Hardware
 - Camera: MindVision MV-SUA133GC-T1V-C
 - Lens: MindVision MV-LD-6-4M-G(6mm)
 - Board: RoboMaster Development Board Type C
 
-## File tree
+## :page_facing_up: File tree
 ```
 .
 ├── CMakeLists.txt
@@ -40,7 +44,10 @@ Ubuntu 22.04
 ```
 
 ## Library needed
-- C++14
-- OpenCV >= 4.5
-- Eigen3
-- OpenGL3 & GLFW
+ |Library| Version |
+ |-------|---------|
+ |OpenCV | \>=4.5  |
+ |Eigen  | \>=3.0  |
+ |OpenGL | \>=3.0  |
+ |GLFW   | \>=3.0  |
+

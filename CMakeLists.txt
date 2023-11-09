@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(pose_detection_display)
+project(stereo_pose_detection)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 set(CMAKE_CXX_STANDARD 14)
@@ -53,5 +53,5 @@ target_link_libraries(PoseCamera libMVSDK.so ${OpenCV_LIBS})
 
 add_subdirectory(src)
 
-target_link_libraries(pose_detection_display ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(pose_detection_display PoseDetect PoseCamera)
+target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(stereo_pose_detection PoseDetect PoseCamera)
