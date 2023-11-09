@@ -11,17 +11,9 @@ set(IMGUI_SRC
 
 add_executable(pose_detection_display
         main.cpp
-        Device/mv_camera.cpp
-        Device/mv_camera.h
         Task/thread_task.cpp
         Task/thread_task.h
-        Task/frame_buffer.cpp
-        Task/frame_buffer.h
-        Utils/tool.cpp
-        Utils/tool.h
         Task/utils.h
-        Utils/body_detector.h
-        Utils/body_detector.cpp
         ${IMGUI_SRC}
 )
 

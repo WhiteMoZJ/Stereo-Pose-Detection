@@ -5,7 +5,6 @@
 #include "thread_task.h"
 #include <opencv2/core/utils/logger.hpp>
 
-double time1, time2;
 
 ThreadTask::ThreadTask() :
         _cameraPtr(std::make_unique<device::MVCamera>()),
@@ -65,7 +64,6 @@ void ThreadTask::consume()
 {
     for (;;) {
         if (!_signal) break;
-
 
         if (!_frontBuffer.getLatest(_displayFrame)) {
             // Sometimes this thread will read buffer twice before next pushing
