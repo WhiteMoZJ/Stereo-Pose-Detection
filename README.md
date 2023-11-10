@@ -1,4 +1,5 @@
 # Stereo Pose Detection
+<a href="https://wakatime.com/badge/github/WhiteMoZJ/Stereo-Pose-Detection"><img src="https://wakatime.com/badge/github/WhiteMoZJ/Stereo-Pose-Detection.svg" alt="wakatime"></a>
 ## :link: Links: 
 - Project: https://github.com/WhiteMoZJ/Stereo-Pose-Detection 
 - Model Download: https://github.com/CMU-Perceptual-Computing-Lab/openpose/tree/master/models/pose/mpi
