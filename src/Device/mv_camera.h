@@ -74,9 +74,9 @@ public:
         return _frameCount;
     }
 
-    void changeExposureTime();
+    void changeExposureTime() const;
 
-    void printInfo();
+    void printInfo() const;
 
     bool isOpened() const
     {

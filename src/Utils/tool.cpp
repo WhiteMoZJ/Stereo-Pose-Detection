@@ -59,6 +59,7 @@ bool Gui::init(const char* window_name, int width, int height)
 
 bool Gui::showImage(Frame &frame, CameraSettings &settings, bool open)
 {
+    if (frame.empty()) return true;
     cv::Mat merged_img(frame.images[0].rows, frame.images[0].cols * 2 + 1,
                        frame.images[0].type(),cv::Scalar(0));
     frame.images[0].copyTo(merged_img.colRange(0, frame.images[0].cols));

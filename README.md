@@ -46,10 +46,7 @@ Ubuntu 22.04
 ```
 
 ## Library needed
- |Library| Version |
- |-------|---------|
- |OpenCV | \>=4.5  |
- |Eigen  | \>=3.0  |
- |OpenGL | \>=3.0  |
- |GLFW   | \>=3.0  |
-
+- [OpenCV \>= 4.5](https://github.com/opencv/opencv)
+- [Eigen \>= 3.3](https://eigen.tuxfamily.org)
+- [OpenGL \>= 3.0](https://www.opengl.org/)
+- [GLFW \>= 3.0](https://www.glfw.org/)

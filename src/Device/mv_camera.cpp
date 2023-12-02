@@ -96,18 +96,20 @@ MVCamera &MVCamera::operator >> (std::array<cv::Mat, 2> &images)
     return *this;
 }
 
-void MVCamera::changeExposureTime()
+void MVCamera::changeExposureTime() const
 {
-    if (settings.exposureTime == 0.f)
-        //! if set exposure time 0, the camera will be not responding for a while
-        CameraSetAeState(_camera, TRUE);
-    else {
-        CameraSetAeState(_camera, FALSE);
-        CameraSetExposureTime(_camera, settings.exposureTime * 1000.);
-    }
+//    if (settings.exposureTime == 0.f)
+//        //! if set exposure time 0, the camera will be not responding for a while
+//        CameraSetAeState(_camera, TRUE);
+//    else {
+//        CameraSetAeState(_camera, FALSE);
+//        CameraSetExposureTime(_camera, settings.exposureTime * 1000.);
+//    }
+    CameraSetAeState(_camera, FALSE);
+    CameraSetExposureTime(_camera, settings.exposureTime * 1000.);
 }
 
-void MVCamera::printInfo()
+void MVCamera::printInfo() const
 {
-
+    std::cout << "Frame size:" << _width << "*" << _height << '\n';
 }

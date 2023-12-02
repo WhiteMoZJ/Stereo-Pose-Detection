@@ -39,7 +39,7 @@ bool FrameBuffer::getLatest(Frame &frame)
     //try for 1ms to lock
     std::unique_lock<std::timed_mutex> lock(_mutexs[headIdx], std::chrono::milliseconds(1));
     if (!lock.owns_lock() ||
-        (_frames[headIdx].images[0].empty() && _frames[headIdx].images[1].empty()) ||
+        _frames[headIdx].empty() ||
         _frames[headIdx].timeStamp == _lastGetTimeStamp) {
         return false;
     }

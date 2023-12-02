@@ -33,13 +33,13 @@ void ThreadTask::init()
     if (!_cameraPtr->setUpCam()) {
         _signal = false;
         threadInfo(MSG_ERR, "No device connect");
+        return;
     }
-    else {
-//        _cameraPtr->printInfo();
-        _signal = true;
-        threadInfo(MSG_START, "Camera Initiated");
-        threadInfo(MSG_START, "Start Streaming...");
-    }
+
+    _cameraPtr->printInfo();
+    threadInfo(MSG_START, "Camera Initiated");
+    threadInfo(MSG_START, "Start Streaming...");
+    _signal = true;
 }
 
 void ThreadTask::produce()
@@ -87,6 +87,7 @@ void ThreadTask::consume()
 
 void ThreadTask::display()
 {
+    // can not make init() & showImage() different threads
     if (!_guiPtr->init("Pose Detection")) {
         threadInfo(MSG_ERR, "GUI Initiated Failed");
         _signal = false;
@@ -108,7 +109,7 @@ void ThreadTask::input()
 {
     /*
      * set real-time settings and input
-     * in a individual thread
+     * in an individual thread
      * to prevent fps to drop
      */
     for (;;) {
