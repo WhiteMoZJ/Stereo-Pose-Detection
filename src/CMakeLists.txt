@@ -1,4 +1,3 @@
-set(IMGUI_DIR Imgui)
 set(IMGUI_SRC
         ${IMGUI_DIR}/imgui.cpp
         ${IMGUI_DIR}/imgui_impl_opengl3.cpp
@@ -13,6 +12,8 @@ add_executable(stereo_pose_detection
         main.cpp
         Task/thread_task.cpp
         Task/thread_task.h
+        Device/camera.cpp
+        Device/camera.h
         Task/utils.h
         ${IMGUI_SRC}
 )

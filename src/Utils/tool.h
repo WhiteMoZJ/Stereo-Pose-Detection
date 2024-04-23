@@ -6,14 +6,14 @@
 #define TOOL_H
 
 #include "../Task/frame_buffer.h"
-#include "../Device/mv_camera.h"
+#include "../Device/camera.h"
 #include "../stdafx.h"
 
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_glfw.h"
 #include "../Imgui/imgui_impl_opengl3.h"
 #include "../Imgui/imgui_impl_opengl3_loader.h"
-#include <GLFW/glfw3.h>
+#include <GLFW/glfw3.h> // be sure glfw inluded after imgui
 
 class Debug
 {

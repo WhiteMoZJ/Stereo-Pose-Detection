@@ -7,7 +7,7 @@
 
 
 ThreadTask::ThreadTask() :
-        _cameraPtr(std::make_unique<device::MVCamera>()),
+        _cameraPtr(std::make_unique<device::Camera>()),
         _detectorPtr(std::make_unique<BodyDetector>()),
         _guiPtr(std::make_unique<Gui>()),
         _frontBuffer(6),
@@ -16,6 +16,7 @@ ThreadTask::ThreadTask() :
         _dis(true)
 {
     startTime = std::chrono::high_resolution_clock::now();
+    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);  // Silent OpenCV info
 }
 
 ThreadTask::~ThreadTask()
@@ -27,10 +28,9 @@ ThreadTask::~ThreadTask()
 
 void ThreadTask::init()
 {
-    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);  // Silent OpenCV info
     _cameraPtr->setVideoFormat(640, 480);
     _cameraPtr->setExposureTime(4.0816f);
-    if (!_cameraPtr->setUpCam()) {
+    if (!_cameraPtr->setUpStream()) {
         _signal = false;
         threadInfo(MSG_ERR, "No device connect");
         return;
@@ -50,7 +50,6 @@ void ThreadTask::produce()
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;
         *_cameraPtr >> images;
-        _cameraPtr->endStream();
 
         if (!_backBuffer.push(Frame{images, _cameraPtr->getFrameCount(), getTimeStamp()}))
             continue;
@@ -114,7 +113,7 @@ void ThreadTask::input()
      */
     for (;;) {
         if (!_signal) break;
-        _cameraPtr->changeExposureTime();
+        _cameraPtr->setExposureTime();
     }
 
 }

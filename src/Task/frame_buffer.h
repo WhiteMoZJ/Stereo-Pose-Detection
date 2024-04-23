@@ -11,7 +11,7 @@
 // frame: with 2 images and time stamp
 struct Frame
 {
-    std::array<cv::Mat, 2> images;
+    std::array<cv::Mat, 2> images{};
     size_t seq = 0;
     double timeStamp = 0.f;
 

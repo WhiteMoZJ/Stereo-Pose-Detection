@@ -5,7 +5,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 set(CMAKE_CXX_STANDARD 14)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-set(MV_DIR ${PROJECT_SOURCE_DIR}/include/MVSDK)
 
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-std=c++14" COMPILER_SUPPORTS_CXX14)
@@ -17,19 +16,25 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
 endif()
 
-find_package(OpenCV 4.5 QUIET)
-if(NOT OpenCV_FOUND)
-    message(FATAL_ERROR "OpenCV > 4.5 not found.")
-endif()
-#find_package(realsense2 REQUIRED)
-find_package(Eigen3 REQUIRED)
+message("building in ${CMAKE_SYSTEM_NAME}")
+
+#set(Eigen3_DIR 3rdparty/Eigen3/share/eigen3/cmake)
+#set(OpenCV_DIR 3rdparty/OpenCV)
+#set(glfw3_DIR 3rdparty/GLFW/lib/cmake/glfw3)
+set(IMGUI_DIR ${PROJECT_SOURCE_DIR}/src/Imgui)
+
+find_package(realsense2 REQUIRED)
+message("Found realsense2: Version ${realsense2_VERSION}")
+find_package(Eigen3 REQUIRED NO_MODULE)
+message("Found Eigen: Version ${Eigen3_VERSION}")
 find_package(Threads REQUIRED)
 find_package(glfw3 REQUIRED)
+message("Found GLFW: Version ${glfw3_VERSION}")
 find_package(OpenGL REQUIRED)
+find_package(OpenCV 4.5 QUIET)
+message("Found OpenCV: Version ${OpenCV_VERSION}")
 
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${EIGEN3_INCLUDE_DIRS})
-include_directories(${PROJECT_SOURCE_DIR}/include)
+#include_directories("3rdparty/*/include")
 
 add_library(PoseDetect SHARED
         src/Utils/tool.h
@@ -38,20 +43,13 @@ add_library(PoseDetect SHARED
         src/Utils/body_detector.cpp
         src/Task/frame_buffer.cpp
         src/Task/frame_buffer.h
-)
-add_library(PoseCamera SHARED
-        ${MV_DIR}/CameraApi.h
-        ${MV_DIR}/CameraDefine.h
-        ${MV_DIR}/CameraStatus.h
-        src/Device/mv_camera.h
-        src/Device/mv_camera.cpp
+        src/Device/camera.h
 )
 
-link_directories(${PROJECT_SOURCE_DIR}/lib)
-target_link_libraries(PoseDetect libMVSDK.so ${OpenCV_LIBS} GL glfw Eigen3::Eigen)
-target_link_libraries(PoseCamera libMVSDK.so ${OpenCV_LIBS})
+#link_directories(${PROJECT_SOURCE_DIR}/lib)
+target_link_libraries(PoseDetect ${OpenCV_LIBS} GL glfw Eigen3::Eigen ${realsense2_LIBRARY})
 
 add_subdirectory(src)
 
 target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(stereo_pose_detection PoseDetect PoseCamera)
+target_link_libraries(stereo_pose_detection PoseDetect)

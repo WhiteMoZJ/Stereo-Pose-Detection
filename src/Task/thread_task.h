@@ -12,7 +12,7 @@
 #define INFO
 
 #include "frame_buffer.h"
-#include "../Device/mv_camera.h"
+#include "../Device/camera.h"
 #include "utils.h"
 #include "../stdafx.h"
 
@@ -62,7 +62,7 @@ public:
     void input();
 
 private:
-    std::unique_ptr<device::MVCamera> _cameraPtr;             // unique Camera object
+    std::unique_ptr<device::Camera> _cameraPtr;             // unique Camera object
     std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
     std::unique_ptr<Gui> _guiPtr;
 
