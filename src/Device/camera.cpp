@@ -39,44 +39,36 @@ bool device::Camera::setUpStream()
     _frameCount = 0;
     _selected_device = nullptr;
     int failed_count = 0;
-    // disable emitter
-    while (!_selected_device) {
-        if (failed_count == 5)
-            // Restart 5 times
-            return false;
-        try {
-            _cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, _fps);
-            _cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, _fps);
 
-            _selection = _pipe.start(_cfg);
-            _selected_device = _selection.get_device();
-            break;
-        }
-        catch(const rs2::camera_disconnected_error& e) {
-            std::cerr << "ERROR: Device Disconnected" << std::endl;
-        }
-        catch (const rs2::recoverable_error& e)
-        {
-            std::cerr << "ERROR: Operation Failed, Please Try Again" << std::endl;
-        }
-        catch (const rs2::error& e)
-        {
-            std::cerr << "ERROR: Some Other Error Occurred" << std::endl;
-        }
-        failed_count++;
+    // disable emitter
+    try {
+        _cfg.enable_stream(RS2_STREAM_INFRARED, 1, _width, _height, RS2_FORMAT_Y8, _fps);
+        _cfg.enable_stream(RS2_STREAM_INFRARED, 2, _width, _height, RS2_FORMAT_Y8, _fps);
+
+        _selection = _pipe.start(_cfg);
+        _selected_device = _selection.get_device();
+
+        const auto depth_sensor = _selected_device.first<rs2::depth_sensor>();
+        if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
+            depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
+        _open = true;
+    }
+    catch(const rs2::camera_disconnected_error& e) {
+        std::cerr << "ERROR: Device Disconnected" << std::endl;
+    }
+    catch (const rs2::recoverable_error& e) {
+        std::cerr << "ERROR: Operation Failed, Please Try Again" << std::endl;
+    }
+    catch (const rs2::error& e) {
+        std::cerr << "ERROR: Some Other Error Occurred" << std::endl;
     }
 
-    auto depth_sensor = _selected_device.first<rs2::depth_sensor>();
-    if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
-        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
-
-    _open = true;
     return _open;
 }
 
 bool device::Camera::startStream()
 {
-    rs2::frameset frameset = _pipe.wait_for_frames();
+    const rs2::frameset frameset = _pipe.wait_for_frames();
     if (!frameset) {
         _open = false;
         return false;
@@ -112,8 +104,8 @@ void device::Camera::printInfo()
 
 device::Camera &device::Camera::operator >> (std::array<cv::Mat, 2> &imgs)
 {
-    imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_left.get_data());
-    imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, (void*)ir_frame_right.get_data());
+    imgs[0] = cv::Mat(cv::Size(_width, _height), CV_8UC1, const_cast<void*>(ir_frame_left.get_data()));
+    imgs[1] = cv::Mat(cv::Size(_width, _height), CV_8UC1, const_cast<void*>(ir_frame_right.get_data()));
     return *this;
 }
 

@@ -7,12 +7,17 @@
 
 #include <librealsense2/rs.hpp>
 #include "../stdafx.h"
-#include "../Task/frame_buffer.h"
 
 struct CameraSettings
 {
-    float exposureTime;
-    float size;
+    float gamma = 0;
+    float size = 0.4;
+
+    static CameraSettings& getSettings()
+    {
+        static CameraSettings settings;
+        return settings;
+    }
 };
 
 namespace device
@@ -27,19 +32,20 @@ public:
     rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
     rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
 
-    CameraSettings settings;
+    CameraSettings settings = CameraSettings::getSettings();
 
 
     /**
      * @brief   Initiate video frame
-     * @param   width and height
+     * @param   width   video frame width
+     * @param   height  video frame height
+     * @param   fps     video fps
      */
     void setVideoFormat(int width = 640, int height = 480, int fps = 90);
     void setExposureTime(float t = 0.f);
 
     /**
      * @brief   Initiate camera
-     * @param   frames per second
      * @return  Is camera start successful
      */
     bool setUpStream();
@@ -96,7 +102,7 @@ public:
     cv::Mat dis_coeff;              // distortion coefficients
 
 private:
-    rs2::config             _cfg;                // realsense config
+    rs2::config             _cfg;              // realsense config
     rs2::pipeline           _pipe;             // realsense pipeline
 
     rs2::device             _selected_device;
@@ -104,7 +110,7 @@ private:
 
     int                     _width, _height;   // frame size
     unsigned int            _frameCount;       // count of frame
-    float                   _exposureTime;            // exposure time
+    float                   _exposureTime;     // exposure time
 
     int                     _fps;
 

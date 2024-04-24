@@ -280,7 +280,7 @@
 //  Incomplete text-in-3d-api example, which draws quads properly aligned to be lossless.
 //  See "tests/truetype_demo_win32.c" for a complete version.
 #if 0
-#define STB_TRUETYPE_IMPLEMENTATION  // force following 3rdparty to generate implementation
+#define STB_TRUETYPE_IMPLEMENTATION  // force following include to generate implementation
 #include "stb_truetype.h"
 
 unsigned char ttf_buffer[1<<20];
@@ -331,7 +331,7 @@ void my_stbtt_print(float x, float y, char *text)
 //
 #if 0
 #include <stdio.h>
-#define STB_TRUETYPE_IMPLEMENTATION  // force following 3rdparty to generate implementation
+#define STB_TRUETYPE_IMPLEMENTATION  // force following include to generate implementation
 #include "stb_truetype.h"
 
 char ttf_buffer[1<<25];

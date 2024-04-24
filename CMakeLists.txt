@@ -18,6 +18,10 @@ endif()
 
 message("building in ${CMAKE_SYSTEM_NAME}")
 
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    add_definitions(-DDEBUG)
+endif ()
+
 #set(Eigen3_DIR 3rdparty/Eigen3/share/eigen3/cmake)
 #set(OpenCV_DIR 3rdparty/OpenCV)
 #set(glfw3_DIR 3rdparty/GLFW/lib/cmake/glfw3)

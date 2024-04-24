@@ -9,7 +9,6 @@
  * Macro to control info output
  * It will be changed to an option
  */
-#define INFO
 
 #include "frame_buffer.h"
 #include "../Device/camera.h"
@@ -56,11 +55,6 @@ public:
      */
     void display();
 
-    /**
-     * @brief   Real-time input
-     */
-    void input();
-
 private:
     std::unique_ptr<device::Camera> _cameraPtr;             // unique Camera object
     std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
@@ -83,13 +77,13 @@ private:
      * @param type Info type(START END WARNING ERROR...)
      * @param info Information
     */
-    inline void threadInfo(MSGType type, const char *info);
+    inline void threadInfo(MSGType type, const char *info) const;
 
     /**
      * @brief   Get current time in ms
      * @return  Time stamp
      */
-    double getTimeStamp()
+    double getTimeStamp() const
     {
         return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
     }

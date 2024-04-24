@@ -6,12 +6,10 @@ Actually it's unfinished...
 - Model Download: https://github.com/CMU-Perceptual-Computing-Lab/openpose/tree/master/models/pose/mpi
 
 ## :computer: Operating System
-Ubuntu 22.04
+Ubuntu 22.04.04
 
 ## :electric_plug: Hardware
-- Camera: MindVision MV-SUA133GC-T1V-C
-- Lens: MindVision MV-LD-6-4M-G(6mm)
-- Board: RoboMaster Development Board Type C
+- Camera: Intel RealSense Depth Camera D435i
 
 ## :page_facing_up: File tree
 ```
@@ -28,8 +26,8 @@ Ubuntu 22.04
     ├── CMakeLists.txt
     ├── main.cpp
     ├── Device
-    │   ├── mv_camera.cpp
-    │   └── mv_camera.h
+    │   ├── camera.cpp
+    │   └── camera.h
     ├── Imgui(imgui files)
     ├── stdafx.h
     ├── Task
@@ -45,8 +43,9 @@ Ubuntu 22.04
         └── tool.h
 ```
 
-## Library needed
-- [OpenCV \>= 4.5](https://github.com/opencv/opencv)
-- [Eigen \>= 3.3](https://eigen.tuxfamily.org)
-- [OpenGL \>= 3.0](https://www.opengl.org/)
-- [GLFW \>= 3.0](https://www.glfw.org/)
+## Library based on
+- [OpenCV = 4.9.0](https://github.com/opencv/opencv)
+- [Eigen = 3.4.0](https://eigen.tuxfamily.org)
+- [GLFW = 3.3.6](https://www.glfw.org/)
+- [RealSense2SDK = 2.54.2](https://www.intelrealsense.com/sdk-2/)
+

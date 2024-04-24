@@ -3,7 +3,6 @@
 //
 
 #include "thread_task.h"
-#include <opencv2/core/utils/logger.hpp>
 
 
 ThreadTask::ThreadTask() :
@@ -16,7 +15,6 @@ ThreadTask::ThreadTask() :
         _dis(true)
 {
     startTime = std::chrono::high_resolution_clock::now();
-    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);  // Silent OpenCV info
 }
 
 ThreadTask::~ThreadTask()
@@ -90,13 +88,12 @@ void ThreadTask::display()
     if (!_guiPtr->init("Pose Detection")) {
         threadInfo(MSG_ERR, "GUI Initiated Failed");
         _signal = false;
-        return;
     }
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
 
     for(;;) {
         if (!_dis) continue;
-        if (!_guiPtr->showImage(_displayFrame, _cameraPtr->settings, _dis)) break;
+        if (!_guiPtr->update(_displayFrame, true)) break;
         // 1 ms lagging time to display
         _dis = false;
     }
@@ -104,23 +101,9 @@ void ThreadTask::display()
     _signal = false;
 }
 
-void ThreadTask::input()
+void ThreadTask::threadInfo(MSGType type, const char *info) const
 {
-    /*
-     * set real-time settings and input
-     * in an individual thread
-     * to prevent fps to drop
-     */
-    for (;;) {
-        if (!_signal) break;
-        _cameraPtr->setExposureTime();
-    }
-
-}
-
-void ThreadTask::threadInfo(MSGType type, const char *info)
-{
-#ifdef INFO
+#ifdef DEBUG
     int time = static_cast<int>(getTimeStamp());
     if (type > _msgs.size() - 1) {
         printf("[ INFO@%02d:%02d:%02d:%03d] Message type undefined\n",
@@ -128,7 +111,7 @@ void ThreadTask::threadInfo(MSGType type, const char *info)
     }
     printf("[ INFO@%02d:%02d:%02d.%03d] %s:%s\n",
            time/3600000, time/60000%60, time/1000%60, time%1000, _msgs[type], info);
-#endif  //INFO
+#endif  //DEBUG
 }
 
 

@@ -3,7 +3,7 @@
 //
 // We embed our own OpenGL loader to not require user to provide their own or to have to use ours,
 // which proved to be endless problems for users.
-// Our loader is custom-generated, based on gl3w but automatically filtered to only 3rdparty
+// Our loader is custom-generated, based on gl3w but automatically filtered to only include
 // enums/functions that we use in our imgui_impl_opengl3.cpp source file in order to be small.
 //
 // YOU SHOULD NOT NEED TO INCLUDE/USE THIS DIRECTLY. THIS IS USED BY imgui_impl_opengl3.cpp ONLY.
@@ -118,9 +118,9 @@ extern "C" {
 ** included as <GL/glcorearb.h>.
 **
 ** glcorearb.h includes only APIs in the latest OpenGL core profile
-** implementation together with APIs in newer ARB extensions which 
+** implementation together with APIs in newer ARB extensions which
 ** can be supported by the core profile. It does not, and never will
-** 3rdparty functionality removed from the core profile, such as
+** include functionality removed from the core profile, such as
 ** fixed-function vertex and fragment processing.
 **
 ** Do not #include both <GL/glcorearb.h> and either of <GL/gl.h> or
@@ -260,6 +260,8 @@ typedef khronos_intptr_t GLintptr;
 #define GL_ARRAY_BUFFER_BINDING           0x8894
 #define GL_ELEMENT_ARRAY_BUFFER_BINDING   0x8895
 #define GL_STREAM_DRAW                    0x88E0
+#define GL_PIXEL_UNPACK_BUFFER            0x88EC
+#define GL_PIXEL_UNPACK_BUFFER_BINDING    0x88EF
 typedef void (APIENTRYP PFNGLBINDBUFFERPROC) (GLenum target, GLuint buffer);
 typedef void (APIENTRYP PFNGLDELETEBUFFERSPROC) (GLsizei n, const GLuint *buffers);
 typedef void (APIENTRYP PFNGLGENBUFFERSPROC) (GLsizei n, GLuint *buffers);
@@ -467,7 +469,7 @@ GL3W_API int imgl3wIsSupported(int major, int minor);
 GL3W_API GL3WglProc imgl3wGetProcAddress(const char *proc);
 
 /* gl3w internal state */
-union GL3WProcs {
+union ImGL3WProcs {
     GL3WglProc ptr[59];
     struct {
         PFNGLACTIVETEXTUREPROC            ActiveTexture;
@@ -532,7 +534,7 @@ union GL3WProcs {
     } gl;
 };
 
-GL3W_API extern union GL3WProcs imgl3wProcs;
+GL3W_API extern union ImGL3WProcs imgl3wProcs;
 
 /* OpenGL functions */
 #define glActiveTexture                   imgl3wProcs.gl.ActiveTexture
@@ -608,7 +610,7 @@ extern "C" {
 
 #include <stdlib.h>
 
-#define ARRAY_SIZE(x)  (sizeof(x) / sizeof((x)[0]))
+#define GL3W_ARRAY_SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -666,7 +668,12 @@ static GL3WglProc (*glx_get_proc_address)(const GLubyte *);
 
 static int open_libgl(void)
 {
-    libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
+    // While most systems use libGL.so.1, NetBSD seems to use that libGL.so.3. See https://github.com/ocornut/imgui/issues/6983
+    libgl = dlopen("libGL.so", RTLD_LAZY | RTLD_LOCAL);
+    if (!libgl)
+        libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
+    if (!libgl)
+        libgl = dlopen("libGL.so.3", RTLD_LAZY | RTLD_LOCAL);
     if (!libgl)
         return GL3W_ERROR_LIBRARY_OPEN;
     *(void **)(&glx_get_proc_address) = dlsym(libgl, "glXGetProcAddressARB");
@@ -794,12 +801,12 @@ static const char *proc_names[] = {
     "glViewport",
 };
 
-GL3W_API union GL3WProcs imgl3wProcs;
+GL3W_API union ImGL3WProcs imgl3wProcs;
 
 static void load_procs(GL3WGetProcAddressProc proc)
 {
     size_t i;
-    for (i = 0; i < ARRAY_SIZE(proc_names); i++)
+    for (i = 0; i < GL3W_ARRAY_SIZE(proc_names); i++)
         imgl3wProcs.ptr[i] = proc(proc_names[i]);
 }
 
