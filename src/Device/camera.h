@@ -10,14 +10,43 @@
 
 struct CameraSettings
 {
-    float gamma = 0;
+
     float size = 0.4;
+    std::string cameraName{"Unknown"}, firmwareVersion{"Unknown"}, serialNum{"Unknown"};
+
 
     static CameraSettings& getSettings()
     {
         static CameraSettings settings;
         return settings;
     }
+
+    /**
+     * @brief   Initiate video frame
+     * @param   width   video frame width
+     * @param   height  video frame height
+     */
+    void setResolution(const int width, const int height)
+    {
+        if (_width == width && _height == height)
+        {
+            return;
+        }
+        _width  = width;
+        _height = height;
+    }
+
+    /**
+     * @brief   Get resolution
+     * @return  cv::Size(_width, _height)
+     */
+    cv::Size getResolution() const
+    {
+        return {_width, _height};
+    }
+
+private:
+    int _width = 0, _height = 0;   // frame size
 };
 
 namespace device
@@ -31,18 +60,6 @@ public:
 
     rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
     rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
-
-    CameraSettings settings = CameraSettings::getSettings();
-
-
-    /**
-     * @brief   Initiate video frame
-     * @param   width   video frame width
-     * @param   height  video frame height
-     * @param   fps     video fps
-     */
-    void setVideoFormat(int width = 640, int height = 480, int fps = 90);
-    void setExposureTime(float t = 0.f);
 
     /**
      * @brief   Initiate camera
@@ -64,15 +81,6 @@ public:
     bool endStream();
 
     /**
-     * @brief   Get resolution
-     * @return  cv::Size(_width, _height)
-     */
-    cv::Size getResolution() const
-    {
-        return {_width, _height};
-    }
-
-    /**
      * @brief   Get frame count
      * @return  _frameCount(private number variable)
      */
@@ -81,11 +89,11 @@ public:
         return _frameCount;
     }
 
-    void printInfo();
+    void printInfo() const;
 
     bool isOpened() const
     {
-        return _open;
+        return _isStreamOpen;
     }
 
     /**
@@ -98,23 +106,20 @@ public:
 
     float fov[2]{79.144, 63.5818};   // X Y fov
 
-    cv::Mat cam_mat;                // camera matrix
-    cv::Mat dis_coeff;              // distortion coefficients
+    cv::Mat camMat;                // camera matrix
+    cv::Mat disCoeff;              // distortion coefficients
 
 private:
     rs2::config             _cfg;              // realsense config
     rs2::pipeline           _pipe;             // realsense pipeline
 
-    rs2::device             _selected_device;
+    rs2::device             _selectedDevice;
     rs2::pipeline_profile   _selection;
+    CameraSettings&         _settings = CameraSettings::getSettings();
 
-    int                     _width, _height;   // frame size
     unsigned int            _frameCount;       // count of frame
-    float                   _exposureTime;     // exposure time
-
     int                     _fps;
-
-    bool                    _open;
+    bool                    _isStreamOpen;
 
 };
 }

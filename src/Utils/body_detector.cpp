@@ -11,5 +11,5 @@ BodyDetector::BodyDetector()
 
 bool BodyDetector::detectBody(const Frame &frame)
 {
-
+    return true;
 }

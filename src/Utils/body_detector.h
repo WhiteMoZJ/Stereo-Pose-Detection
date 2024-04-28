@@ -10,7 +10,17 @@
 
 using namespace cv::dnn;
 
-// TODO: HyperPose is under consideration
+struct PointSet
+{
+    static PointSet& getPoints()
+    {
+        static PointSet pointset;
+        return pointset;
+    }
+
+private:
+    std::vector<int> points;
+};
 
 class BodyDetector
 {
@@ -22,7 +32,6 @@ public:
     /**
      * @brief   Detect body from frame
      * @param   frame Frame object
-     * @param   points PointSet object
      * @return  Detect successful
      */
     bool detectBody(const Frame &frame);

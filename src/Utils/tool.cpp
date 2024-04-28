@@ -4,16 +4,17 @@
 
 #include "tool.h"
 
-// Debug class functions
-
 // Gui class function
-Gui::Gui()
+Gui::Gui():
+    frontBuffer(6)
 {
     _texture = 0;
-    _clear_color = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    _debug_info = true;
-    _vsync = false;
-    _mergedImg = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
+    _clearColor = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    _showDebugInfo = true;
+    _isVsync = false;
+    _gamma = 1.f;
+    _mergedImg = cv::Mat(_settings.getResolution().height, _settings.getResolution().width * 2 + 1,
+                             CV_8UC1, cv::Scalar(0));
 }
 
 Gui::~Gui()
@@ -24,7 +25,7 @@ Gui::~Gui()
 
     glfwDestroyWindow(_window);
     glfwTerminate();
-    _debug_info = false;
+    _showDebugInfo = false;
 }
 
 bool Gui::init(const char* window_name, const int width, const int height)
@@ -32,10 +33,7 @@ bool Gui::init(const char* window_name, const int width, const int height)
     ImGui::CreateContext();
     ImGui::GetIO().IniFilename = "../configs/config.ini";
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGui::StyleColorsClassic();
-    ImGuiStyle style = ImGui::GetStyle();
-    style.WindowRounding = 0.5f;
 
     glfwSetErrorCallback(glfw_error_callback);
     if(!glfwInit()){
@@ -53,45 +51,58 @@ bool Gui::init(const char* window_name, const int width, const int height)
 
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
     ImGui_ImplOpenGL3_Init("#version 410");
+
     return true;
 }
 
-bool Gui::update(const Frame &frame, const bool open)
+bool Gui::update()
 {
-    if(!frame.empty()) {
-        _mergedImg = cv::Mat(frame.images[0].rows, frame.images[0].cols * 2 + 1,
-                             frame.images[0].type(), cv::Scalar(0));
-        frame.images[0].copyTo(_mergedImg.colRange(0, frame.images[0].cols));
-        frame.images[1].copyTo(_mergedImg.colRange(frame.images[1].cols + 1, _mergedImg.cols));
-    }
     if (!glfwWindowShouldClose(_window)) {
         clear();
         glfwPollEvents();
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+
         ImGui::NewFrame();
-
-        updateWindow(frame);
-
+        updateWindow();
         ImGui::Render();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        glfwSwapInterval(_isVsync);   // enable or disable vsync
         glfwSwapBuffers(_window);
-        glfwSwapInterval(_vsync);   // enable or disable vsync
         return true;
     }
-    else {
-        return false;
-    }
+    return false;
 }
 
-void Gui::updateWindow(const Frame &frame)
+void Gui::updateWindow()
 {
-    if (ImGui::Begin("camera", nullptr,
+    bool getNew = false;
+    if(frontBuffer.getLatest(_displayFrame)) {
+
+        getNew = true;
+    }
+
+	if(!_displayFrame.isEmpty()) {
+	    _mergedImg = cv::Mat(_settings.getResolution().height, _settings.getResolution().width * 2 + 1,
+                             CV_8UC1, cv::Scalar(0));
+
+		_displayFrame.images[0].copyTo(_mergedImg.colRange(0, _settings.getResolution().width));
+		_displayFrame.images[1].copyTo(_mergedImg.colRange(_settings.getResolution().width + 1, _mergedImg.cols));
+
+	    cv::Mat lookUpTable(1, 256, CV_8U);
+	    uchar* p = lookUpTable.ptr();
+	    for( int i = 0; i < 256; ++i)
+	        p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, _gamma) * 255.0);
+
+	    cv::LUT(_mergedImg, lookUpTable, _mergedImg);
+	}
+
+    if (ImGui::Begin("Info", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        if (ImGui::CollapsingHeader("camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-            const cv::Size size(_mergedImg.cols * settings.size, _mergedImg.rows * settings.size);
+        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+            const cv::Size size(_mergedImg.cols * _settings.size, _mergedImg.rows * _settings.size);
             cv::resize(_mergedImg, _mergedImg, size, 0, 0, cv::INTER_NEAREST_EXACT);
             cv::cvtColor(_mergedImg, _mergedImg, cv::COLOR_RGB2BGRA);
 
@@ -107,24 +118,33 @@ void Gui::updateWindow(const Frame &frame)
                          ImVec2(static_cast<float>(_mergedImg.cols), static_cast<float>(_mergedImg.rows)));
         }
 
-        if (ImGui::CollapsingHeader("status", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Text("%.3f ms/frame (%.1f FPS)",
-                        1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::Checkbox("vsync", &_vsync);
+    	if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+    		// ImGui::SliderFloat("size", &settings.size, 0.3, 1, "%.2f x");
 
-            ImGui::Checkbox("debug message", &_debug_info);
-            if (_debug_info) {
-                ImGui::Text("counter:       %zu", frame.seq);
-                ImGui::Text("time stamp:    %.3f", frame.timeStamp);
-                ImGui::Text("run time:      %02d:%02d:%02d.%03d",
-                            static_cast<int>(frame.timeStamp) / 3600000, static_cast<int>(frame.timeStamp) / 60000 % 60,
-                            static_cast<int>(frame.timeStamp) / 1000 % 60, static_cast<int>(frame.timeStamp) % 1000);
+    	    {   // gamma setting slider
+    	        ImGui::SliderFloat("Gamma", &_gamma, 0.1f, 5.0f, "%.1f");
+    	        ImGui::SameLine();
+    	        if (ImGui::Button("Reset"))
+    	            _gamma = 1.f;
+    	    }
+    	}
+
+        if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("Vsync", &_isVsync);
+            ImGui::Checkbox("Debug Message", &_showDebugInfo);
+            ImGui::Text("%.1f FPS/%.3f ms",
+                        ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+            if (_showDebugInfo) {
+                ImGui::TextDisabled(("          Camera: " +  _settings.cameraName).c_str());
+                ImGui::TextDisabled(("Firmware Version: " + _settings.firmwareVersion).c_str());
+                ImGui::TextDisabled(("   Serial Number: " + _settings.serialNum).c_str());
+
+                ImGui::TextDisabled("   Frame Counter: %zu", _displayFrame.seq);
+                ImGui::TextDisabled("      Time Stamp: %.3f", _displayFrame.timeStamp);
+                ImGui::TextDisabled("    Running Time: %02d:%02d:%02d:%03d",
+                            static_cast<int>(_displayFrame.timeStamp) / 3600000, static_cast<int>(_displayFrame.timeStamp) / 60000 % 60,
+                            static_cast<int>(_displayFrame.timeStamp) / 1000 % 60, static_cast<int>(_displayFrame.timeStamp) % 1000);
             }
-        }
-
-        if (ImGui::CollapsingHeader("settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-            // ImGui::SliderFloat("size", &settings.size, 0.3, 1, "%.2f x");
-            ImGui::SliderFloat("exposure time(0 for auto)", &settings.gamma, 0.0f, 10.0f, "%.4f ms");
         }
 
         ImGui::End();
@@ -132,14 +152,15 @@ void Gui::updateWindow(const Frame &frame)
 
     if (ImGui::Begin("Pose", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::End();
+
+    	ImGui::End();
     }
 }
 
 void Gui::clear() const
 {
-    glClearColor(_clear_color.x * _clear_color.w, _clear_color.y * _clear_color.w,
-                 _clear_color.z * _clear_color.w, _clear_color.w);
+    glClearColor(_clearColor.x * _clearColor.w, _clearColor.y * _clearColor.w,
+                 _clearColor.z * _clearColor.w, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
     if (_texture)
     {

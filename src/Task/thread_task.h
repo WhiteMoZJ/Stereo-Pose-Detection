@@ -60,20 +60,18 @@ private:
     std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
     std::unique_ptr<Gui> _guiPtr;
 
-    FrameBuffer _frontBuffer, _backBuffer;
-    bool _signal, _dis;
+    bool _isRunning, _canDisplay;
     // _signal to detect thread status
     // _dis to control v-sync
+
     std::condition_variable _cv;
-
-    Frame _displayFrame;
-
-    timer startTime;
+    FrameBuffer _backBuffer;
+    timer _startTime;
 
     std::array<const char*, 5> _msgs{"START", "END", "EXIT", "WARNING", "ERROR"};
 
     /**
-     * @brief  Output thread information in cmd.
+     * @brief Output thread information in cmd.
      * @param type Info type(START END WARNING ERROR...)
      * @param info Information
     */
@@ -85,7 +83,7 @@ private:
      */
     double getTimeStamp() const
     {
-        return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - startTime)).count();
+        return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - _startTime)).count();
     }
 };
 

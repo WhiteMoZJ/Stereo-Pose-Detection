@@ -5,16 +5,15 @@
 #include "thread_task.h"
 
 
-ThreadTask::ThreadTask() :
-        _cameraPtr(std::make_unique<device::Camera>()),
-        _detectorPtr(std::make_unique<BodyDetector>()),
-        _guiPtr(std::make_unique<Gui>()),
-        _frontBuffer(6),
-        _backBuffer(6),
-        _signal(false),
-        _dis(true)
+ThreadTask::ThreadTask():
+    _cameraPtr(std::make_unique<device::Camera>()),
+    _detectorPtr(std::make_unique<BodyDetector>()),
+    _guiPtr(std::make_unique<Gui>()),
+    _isRunning(false),
+    _canDisplay(false),
+    _backBuffer(6)
 {
-    startTime = std::chrono::high_resolution_clock::now();
+    _startTime = std::chrono::high_resolution_clock::now();
 }
 
 ThreadTask::~ThreadTask()
@@ -26,24 +25,22 @@ ThreadTask::~ThreadTask()
 
 void ThreadTask::init()
 {
-    _cameraPtr->setVideoFormat(640, 480);
-    _cameraPtr->setExposureTime(4.0816f);
     if (!_cameraPtr->setUpStream()) {
-        _signal = false;
+        _isRunning = false;
         threadInfo(MSG_ERR, "No device connect");
         return;
     }
+    _isRunning = true;
 
     _cameraPtr->printInfo();
     threadInfo(MSG_START, "Camera Initiated");
     threadInfo(MSG_START, "Start Streaming...");
-    _signal = true;
 }
 
 void ThreadTask::produce()
 {
     for (;;) {
-        if (!_signal) break;
+        if (!_isRunning) break;
 
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;
@@ -52,53 +49,37 @@ void ThreadTask::produce()
         if (!_backBuffer.push(Frame{images, _cameraPtr->getFrameCount(), getTimeStamp()}))
             continue;
 
-        // push frame to _frontBuffer
-        _backBuffer.swapTo(_frontBuffer);
+        // push frame to _frontBuffer for display
+        if (_backBuffer.swapTo(_guiPtr->frontBuffer))
+            _canDisplay = true;
     }
 }
 
 void ThreadTask::consume()
 {
     for (;;) {
-        if (!_signal) break;
-
-        if (!_frontBuffer.getLatest(_displayFrame)) {
-            // Sometimes this thread will read buffer twice before next pushing
-            continue;
-        }
-        _dis = true;
-
-        Frame frame = _displayFrame;
-
-
-
-        // !WARNING openpose needs RGB frame
-        // TODO: too slow with openpose (2fps)
-//        if (!frame.empty()) {
-//            _detectorPtr->detectBody(frame);
-//        }
-
-
+        if (!_isRunning) break;
+        // TODO: solve 3D pose
+        Frame frame;
+        if (!_backBuffer.getLatest(frame)) continue;
     }
 }
 
 void ThreadTask::display()
 {
-    // can not make init() & showImage() different threads
     if (!_guiPtr->init("Pose Detection")) {
         threadInfo(MSG_ERR, "GUI Initiated Failed");
-        _signal = false;
+        _isRunning = false;
     }
+
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
-
     for(;;) {
-        if (!_dis) continue;
-        if (!_guiPtr->update(_displayFrame, true)) break;
+        if (!_canDisplay) continue;
+        if (!_guiPtr->update()) break;
         // 1 ms lagging time to display
-        _dis = false;
     }
 
-    _signal = false;
+    _isRunning = false;
 }
 
 void ThreadTask::threadInfo(MSGType type, const char *info) const

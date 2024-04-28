@@ -18,7 +18,7 @@ struct Frame
     /**
      * @brief   To make sure both the two stereo frames are not empty
      */
-    bool empty() const
+    bool isEmpty() const
     {
         return images[0].empty() || images[1].empty();
     }
@@ -30,6 +30,7 @@ class FrameBuffer
 {
 public:
     explicit FrameBuffer(size_t size);
+    FrameBuffer(FrameBuffer&) = delete;
 
     ~FrameBuffer() = default;
 
@@ -58,7 +59,7 @@ public:
      * @brief   Get buffer empty status
      * @return  Empty status
      */
-    bool empty() const
+    bool isEmpty() const
     {
         return _frames.empty();
     }

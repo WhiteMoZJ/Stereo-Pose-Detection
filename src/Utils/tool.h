@@ -16,13 +16,6 @@
 #include <GLFW/glfw3.h> // be sure glfw inluded after imgui
 
 
-
-class Debug
-{
-public:
-    Debug() = default;
-};
-
 class Gui
 {
 public:
@@ -41,14 +34,14 @@ public:
 
     /**
      * @brief   Show GUI
-     * @param   frame camera frame
-     * @param   open signal
      * @return  Is GUI running
      */
-    bool update(const Frame& frame, bool open);
+    bool update();
+
+    FrameBuffer frontBuffer;
 
 private:
-    void updateWindow(const Frame &frame);
+    void updateWindow();
 
     void clear() const;
 
@@ -57,13 +50,14 @@ private:
         fprintf(stderr, "GLFW Error %d: %s\n", error, description);
     }
 
-    GLFWwindow* _window{};
-    GLuint _texture;
-    ImVec4 _clear_color;
-    bool _debug_info, _vsync;
-    cv::Mat _mergedImg;
-
-    CameraSettings settings = CameraSettings::getSettings();
+    GLFWwindow*     _window{};
+    GLuint          _texture;
+    ImVec4          _clearColor;
+    bool            _showDebugInfo, _isVsync;
+    cv::Mat         _mergedImg;
+    Frame           _displayFrame;
+    float           _gamma; // just affect display
+    CameraSettings& _settings = CameraSettings::getSettings();
 };
 
 
