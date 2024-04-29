@@ -11,10 +11,8 @@ Gui::Gui():
     _texture = 0;
     _clearColor = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
     _showDebugInfo = true;
-    _isVsync = false;
+    _isVsync = true;
     _gamma = 1.f;
-    _mergedImg = cv::Mat(_settings.getResolution().height, _settings.getResolution().width * 2 + 1,
-                             CV_8UC1, cv::Scalar(0));
 }
 
 Gui::~Gui()
@@ -25,7 +23,6 @@ Gui::~Gui()
 
     glfwDestroyWindow(_window);
     glfwTerminate();
-    _showDebugInfo = false;
 }
 
 bool Gui::init(const char* window_name, const int width, const int height)
@@ -69,7 +66,7 @@ bool Gui::update()
         ImGui::Render();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        glfwSwapInterval(_isVsync);   // enable or disable vsync
+        glfwSwapInterval(_isVsync);   // enable vsync can reduce CPU usage
         glfwSwapBuffers(_window);
         return true;
     }
@@ -78,16 +75,10 @@ bool Gui::update()
 
 void Gui::updateWindow()
 {
-    bool getNew = false;
-    if(frontBuffer.getLatest(_displayFrame)) {
-
-        getNew = true;
-    }
+    frontBuffer.getLatest(_displayFrame);
+    _mergedImg = cv::Mat(480, 640 * 2 + 1, CV_8UC1, cv::Scalar(0));
 
 	if(!_displayFrame.isEmpty()) {
-	    _mergedImg = cv::Mat(_settings.getResolution().height, _settings.getResolution().width * 2 + 1,
-                             CV_8UC1, cv::Scalar(0));
-
 		_displayFrame.images[0].copyTo(_mergedImg.colRange(0, _settings.getResolution().width));
 		_displayFrame.images[1].copyTo(_mergedImg.colRange(_settings.getResolution().width + 1, _mergedImg.cols));
 
@@ -95,14 +86,13 @@ void Gui::updateWindow()
 	    uchar* p = lookUpTable.ptr();
 	    for( int i = 0; i < 256; ++i)
 	        p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, _gamma) * 255.0);
-
 	    cv::LUT(_mergedImg, lookUpTable, _mergedImg);
 	}
 
     if (ImGui::Begin("Info", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-            const cv::Size size(_mergedImg.cols * _settings.size, _mergedImg.rows * _settings.size);
+            const cv::Size size(_mergedImg.cols * 0.4, _mergedImg.rows * 0.4);
             cv::resize(_mergedImg, _mergedImg, size, 0, 0, cv::INTER_NEAREST_EXACT);
             cv::cvtColor(_mergedImg, _mergedImg, cv::COLOR_RGB2BGRA);
 

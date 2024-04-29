@@ -60,13 +60,13 @@ private:
     std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
     std::unique_ptr<Gui> _guiPtr;
 
-    bool _isRunning, _canDisplay;
-    // _signal to detect thread status
-    // _dis to control v-sync
+    bool _isShoutdown; // controlled by display thread
+    bool _canDisplay;
 
-    std::condition_variable _cv;
+    std::mutex _mtx;
     FrameBuffer _backBuffer;
     timer _startTime;
+
 
     std::array<const char*, 5> _msgs{"START", "END", "EXIT", "WARNING", "ERROR"};
 

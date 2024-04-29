@@ -44,6 +44,10 @@ bool device::Camera::setUpStream()
         std::cerr << "ERROR: Some Other Error Occurred" << std::endl;
     }
 
+    _settings.cameraName = _selectedDevice.get_info(RS2_CAMERA_INFO_NAME);
+    _settings.firmwareVersion = _selectedDevice.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION);
+    _settings.serialNum = _selectedDevice.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+
     return _isStreamOpen;
 }
 
@@ -71,17 +75,10 @@ bool device::Camera::endStream()
     return true;
 }
 
-void device::Camera::printInfo() const
-{
-    _settings.cameraName = _selectedDevice.get_info(RS2_CAMERA_INFO_NAME);
-    _settings.firmwareVersion = _selectedDevice.get_info(RS2_CAMERA_INFO_FIRMWARE_VERSION);
-    _settings.serialNum = _selectedDevice.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
-}
-
 device::Camera &device::Camera::operator >> (std::array<cv::Mat, 2> &imgs)
 {
-    imgs[0] = cv::Mat(_settings.getResolution(), CV_8UC1, const_cast<void*>(ir_frame_left.get_data()));
-    imgs[1] = cv::Mat(_settings.getResolution(), CV_8UC1, const_cast<void*>(ir_frame_right.get_data()));
+    cv::Mat(_settings.getResolution(), CV_8UC1, const_cast<void*>(ir_frame_left.get_data())).copyTo(imgs[0]);
+    cv::Mat(_settings.getResolution(), CV_8UC1, const_cast<void*>(ir_frame_right.get_data())).copyTo(imgs[1]);
     return *this;
 }
 

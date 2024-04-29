@@ -9,7 +9,7 @@ ThreadTask::ThreadTask():
     _cameraPtr(std::make_unique<device::Camera>()),
     _detectorPtr(std::make_unique<BodyDetector>()),
     _guiPtr(std::make_unique<Gui>()),
-    _isRunning(false),
+    _isShoutdown(false),
     _canDisplay(false),
     _backBuffer(6)
 {
@@ -25,23 +25,20 @@ ThreadTask::~ThreadTask()
 
 void ThreadTask::init()
 {
+    std::unique_lock<std::mutex> thread_lock(_mtx);
     if (!_cameraPtr->setUpStream()) {
-        _isRunning = false;
         threadInfo(MSG_ERR, "No device connect");
         return;
     }
-    _isRunning = true;
 
-    _cameraPtr->printInfo();
     threadInfo(MSG_START, "Camera Initiated");
     threadInfo(MSG_START, "Start Streaming...");
 }
 
 void ThreadTask::produce()
 {
-    for (;;) {
-        if (!_isRunning) break;
-
+    std::lock_guard<std::mutex> guard(_mtx);
+    while (!_isShoutdown) {
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;
         *_cameraPtr >> images;
@@ -57,8 +54,8 @@ void ThreadTask::produce()
 
 void ThreadTask::consume()
 {
-    for (;;) {
-        if (!_isRunning) break;
+    std::lock_guard<std::mutex> guard(_mtx);
+    while (!_isShoutdown) {
         // TODO: solve 3D pose
         Frame frame;
         if (!_backBuffer.getLatest(frame)) continue;
@@ -69,17 +66,15 @@ void ThreadTask::display()
 {
     if (!_guiPtr->init("Pose Detection")) {
         threadInfo(MSG_ERR, "GUI Initiated Failed");
-        _isRunning = false;
+        _isShoutdown = true;
     }
+    // std::lock_guard<std::mutex> guard(_mtx);
 
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
-    for(;;) {
-        if (!_canDisplay) continue;
-        if (!_guiPtr->update()) break;
+    while (!_isShoutdown) {
+        _isShoutdown = !_guiPtr->update();
         // 1 ms lagging time to display
     }
-
-    _isRunning = false;
 }
 
 void ThreadTask::threadInfo(MSGType type, const char *info) const

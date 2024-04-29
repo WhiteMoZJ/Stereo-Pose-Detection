@@ -89,8 +89,6 @@ public:
         return _frameCount;
     }
 
-    void printInfo() const;
-
     bool isOpened() const
     {
         return _isStreamOpen;
