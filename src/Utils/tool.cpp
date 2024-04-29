@@ -92,7 +92,7 @@ void Gui::updateWindow()
     if (ImGui::Begin("Info", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-            const cv::Size size(_mergedImg.cols * 0.4, _mergedImg.rows * 0.4);
+            const cv::Size size(static_cast<int>(_mergedImg.cols * 0.4), static_cast<int>(_mergedImg.rows * 0.4));
             cv::resize(_mergedImg, _mergedImg, size, 0, 0, cv::INTER_NEAREST_EXACT);
             cv::cvtColor(_mergedImg, _mergedImg, cv::COLOR_RGB2BGRA);
 

@@ -17,7 +17,6 @@ bool device::Camera::setUpStream()
 {
     _frameCount = 0;
     _selectedDevice = nullptr;
-    int failed_count = 0;
 
     // disable emitter
     try {
@@ -34,13 +33,13 @@ bool device::Camera::setUpStream()
             depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f);
         _isStreamOpen = true;
     }
-    catch(const rs2::camera_disconnected_error& e) {
+    catch(const rs2::camera_disconnected_error&) {
         std::cerr << "ERROR: Device Disconnected" << std::endl;
     }
-    catch (const rs2::recoverable_error& e) {
+    catch (const rs2::recoverable_error&) {
         std::cerr << "ERROR: Operation Failed, Please Try Again" << std::endl;
     }
-    catch (const rs2::error& e) {
+    catch (const rs2::error&) {
         std::cerr << "ERROR: Some Other Error Occurred" << std::endl;
     }
 

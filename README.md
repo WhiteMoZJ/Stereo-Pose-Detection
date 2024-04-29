@@ -47,5 +47,5 @@ Ubuntu 22.04.04
 - [OpenCV = 4.9.0](https://github.com/opencv/opencv)
 - [Eigen = 3.4.0](https://eigen.tuxfamily.org)
 - [GLFW = 3.3.6](https://www.glfw.org/)
-- [RealSense2SDK = 2.54.2](https://www.intelrealsense.com/sdk-2/)
+- [RealSense2SDK = 2.55.1](https://www.intelrealsense.com/sdk-2/)
 

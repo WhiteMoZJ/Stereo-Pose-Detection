@@ -11,6 +11,7 @@ ThreadTask::ThreadTask():
     _guiPtr(std::make_unique<Gui>()),
     _isShoutdown(false),
     _canDisplay(false),
+    _middleBuffer(6),
     _backBuffer(6)
 {
     _startTime = std::chrono::high_resolution_clock::now();
@@ -38,27 +39,30 @@ void ThreadTask::init()
 void ThreadTask::produce()
 {
     std::lock_guard<std::mutex> guard(_mtx);
+    std::cout << "1\n";
     while (!_isShoutdown) {
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;
         *_cameraPtr >> images;
 
-        if (!_backBuffer.push(Frame{images, _cameraPtr->getFrameCount(), getTimeStamp()}))
+        if (!_middleBuffer.push(Frame{images, _cameraPtr->getFrameCount(), getTimeStamp()}))
             continue;
 
         // push frame to _frontBuffer for display
-        if (_backBuffer.swapTo(_guiPtr->frontBuffer))
+        if (_middleBuffer.swapTo(_guiPtr->frontBuffer) && _middleBuffer.swapTo(_backBuffer))
             _canDisplay = true;
     }
 }
 
 void ThreadTask::consume()
 {
-    std::lock_guard<std::mutex> guard(_mtx);
+    std::cout << "2\n";
     while (!_isShoutdown) {
         // TODO: solve 3D pose
         Frame frame;
         if (!_backBuffer.getLatest(frame)) continue;
+
+        // std::cout << _detectorPtr->detectBody(frame) << "\n";
     }
 }
 
@@ -68,7 +72,6 @@ void ThreadTask::display()
         threadInfo(MSG_ERR, "GUI Initiated Failed");
         _isShoutdown = true;
     }
-    // std::lock_guard<std::mutex> guard(_mtx);
 
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
     while (!_isShoutdown) {
@@ -77,10 +80,10 @@ void ThreadTask::display()
     }
 }
 
-void ThreadTask::threadInfo(MSGType type, const char *info) const
+void ThreadTask::threadInfo(const MSGType type, const char *info) const
 {
 #ifdef DEBUG
-    int time = static_cast<int>(getTimeStamp());
+    const int time = static_cast<int>(getTimeStamp());
     if (type > _msgs.size() - 1) {
         printf("[ INFO@%02d:%02d:%02d:%03d] Message type undefined\n",
                time/3600000, time/60000%60, time/1000%60, time%1000);

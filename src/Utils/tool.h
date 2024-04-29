@@ -27,7 +27,9 @@ public:
      * @brief   Initiate GUI create by Imgui
      *
      * (Must be used in the thread where showImage() is)
-     * @param   window_name window title
+     * @param   window_name     window title
+     * @param   width           window width
+     * @param   height          widow height
      * @return  Initiate successful
      */
     bool init(const char* window_name = "window", int width = 1600, int height = 900);

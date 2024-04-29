@@ -64,7 +64,7 @@ private:
     bool _canDisplay;
 
     std::mutex _mtx;
-    FrameBuffer _backBuffer;
+    FrameBuffer _middleBuffer, _backBuffer;
     timer _startTime;
 
 
