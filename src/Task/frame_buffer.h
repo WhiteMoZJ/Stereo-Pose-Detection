@@ -53,7 +53,7 @@ public:
      * @param buffer    To which buffer
      * @return  Swap successful
      */
-    bool swapTo(FrameBuffer &buffer);
+    bool swapLatestTo(FrameBuffer &buffer) const;
 
     /**
      * @brief   Get buffer empty status

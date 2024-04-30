@@ -38,8 +38,9 @@ void ThreadTask::init()
 
 void ThreadTask::produce()
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::lock_guard<std::mutex> guard(_mtx);
-    std::cout << "1\n";
+    std::cout << "produce\n";
     while (!_isShoutdown) {
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;
@@ -49,19 +50,21 @@ void ThreadTask::produce()
             continue;
 
         // push frame to _frontBuffer for display
-        if (_middleBuffer.swapTo(_guiPtr->frontBuffer) && _middleBuffer.swapTo(_backBuffer))
+        if (_middleBuffer.swapLatestTo(_guiPtr->frontBuffer) && _middleBuffer.swapLatestTo(_backBuffer))
             _canDisplay = true;
     }
 }
 
 void ThreadTask::consume()
 {
-    std::cout << "2\n";
+    std::cout << "consume\n";
     while (!_isShoutdown) {
         // TODO: solve 3D pose
+        if (!_canDisplay) continue;
+
         Frame frame;
         if (!_backBuffer.getLatest(frame)) continue;
-
+        // std::cout << frame.seq << "\n";
         // std::cout << _detectorPtr->detectBody(frame) << "\n";
     }
 }

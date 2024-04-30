@@ -50,11 +50,12 @@ bool FrameBuffer::getLatest(Frame &frame)
     return true;
 }
 
-bool FrameBuffer::swapTo(FrameBuffer &buffer)
+bool FrameBuffer::swapLatestTo(FrameBuffer &buffer) const
 {
-    Frame frame;
-    this->getLatest(frame);
-    if (this->_frames.empty() || !buffer.push(frame)) {
+    volatile const size_t headIdx = _headIdx;
+
+    if (_frames[headIdx].isEmpty() ||
+        !buffer.push(_frames[headIdx])) {
         return false;
     }
     return true;
