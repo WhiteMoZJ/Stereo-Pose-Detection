@@ -83,7 +83,8 @@ private:
      */
     double getTimeStamp() const
     {
-        return (static_cast<std::chrono::duration<double,std::milli>>(std::chrono::high_resolution_clock::now() - _startTime)).count();
+        return (static_cast<std::chrono::duration<double,std::milli>>
+         (std::chrono::high_resolution_clock::now() - _startTime)).count();
     }
 };
 

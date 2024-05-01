@@ -7,6 +7,7 @@
 
 #include "../stdafx.h"
 #include "../Task/frame_buffer.h"
+#include "../Device/camera.h"
 
 struct PointSet
 {
@@ -32,7 +33,7 @@ public:
      * @param   frame Frame object
      * @return  Detect successful
      */
-    bool detectBody(Frame &frame);
+    bool detectBody(const Frame &frame);
 
     /**
      * @brief   Solve body points in 3D
@@ -52,14 +53,12 @@ private:
     };
 
     std::string dataset = "MPI";
-    int W_in = 640;
-    int H_in = 480;
     float thresh = 0.1;
     float scale = 0.003922;
-
     const int npairs = 14, nparts = 16;
-
     cv::dnn::Net net;
+
+    PointSet &_pointset = PointSet::getPoints();
 };
 
 

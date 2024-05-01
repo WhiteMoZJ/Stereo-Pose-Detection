@@ -40,20 +40,4 @@ message("Found OpenCV: Version ${OpenCV_VERSION}")
 
 #include_directories("3rdparty/*/include")
 
-add_library(PoseDetect SHARED
-        src/Utils/tool.h
-        src/Utils/tool.cpp
-        src/Utils/body_detector.h
-        src/Utils/body_detector.cpp
-        src/Task/frame_buffer.cpp
-        src/Task/frame_buffer.h
-        src/Device/camera.h
-)
-
-#link_directories(${PROJECT_SOURCE_DIR}/lib)
-target_link_libraries(PoseDetect ${OpenCV_LIBS} GL glfw Eigen3::Eigen ${realsense2_LIBRARY})
-
 add_subdirectory(src)
-
-target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(stereo_pose_detection PoseDetect)

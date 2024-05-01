@@ -64,8 +64,8 @@ void ThreadTask::consume()
 
         Frame frame;
         if (!_backBuffer.getLatest(frame)) continue;
-        // std::cout << frame.seq << "\n";
-        // std::cout << _detectorPtr->detectBody(frame) << "\n";
+
+        _detectorPtr->detectBody(frame);
     }
 }
 
