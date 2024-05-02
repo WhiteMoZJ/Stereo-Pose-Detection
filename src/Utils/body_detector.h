@@ -7,19 +7,8 @@
 
 #include "../stdafx.h"
 #include "../Task/frame_buffer.h"
+#include "pointset_buffer.h"
 #include "../Device/camera.h"
-
-struct PointSet
-{
-    static PointSet& getPoints()
-    {
-        static PointSet pointset;
-        return pointset;
-    }
-
-    size_t seq = 0;
-    std::array<std::array<cv::Point, 14>, 2> points{};
-};
 
 class BodyDetector
 {
@@ -41,6 +30,8 @@ public:
      */
     void solve3D();
 
+    double getFramerate();
+
 private:
     const std::string modelTxt = "../data/models/pose_deploy_linevec_faster_4_stages.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
@@ -57,8 +48,6 @@ private:
     float scale = 0.003922;
     const int npairs = 14, nparts = 16;
     cv::dnn::Net net;
-
-    PointSet &_pointset = PointSet::getPoints();
 };
 
 

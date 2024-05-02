@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
-project(stereo_pose_detection)
+project(stereo_pose_detection LANGUAGES CXX CUDA)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 set(CMAKE_CXX_STANDARD 14)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -28,15 +27,27 @@ endif ()
 set(IMGUI_DIR ${PROJECT_SOURCE_DIR}/src/Imgui)
 
 find_package(realsense2 REQUIRED)
-message("Found realsense2: Version ${realsense2_VERSION}")
+message("-- Found realsense2: Version ${realsense2_VERSION}")
+include_directories(${realsense2_INCLUDE_DIRS})
+
 find_package(Eigen3 REQUIRED NO_MODULE)
-message("Found Eigen: Version ${Eigen3_VERSION}")
+message("-- Found Eigen: Version ${Eigen3_VERSION}")
+
 find_package(Threads REQUIRED)
+
 find_package(glfw3 REQUIRED)
-message("Found GLFW: Version ${glfw3_VERSION}")
+message("-- Found GLFW: Version ${glfw3_VERSION}")
+
 find_package(OpenGL REQUIRED)
-find_package(OpenCV 4.5 QUIET)
-message("Found OpenCV: Version ${OpenCV_VERSION}")
+
+find_package(CUDAToolkit REQUIRED)
+if (CUDAToolkit_FOUND)
+    message("-- Found CUDA: Version ${CUDAToolkit_VERSION}")
+    enable_language(CUDA)
+    find_package(OpenCV 4.5 QUIET)
+    message("-- Found OpenCV: Version ${OpenCV_VERSION}")
+    include_directories(${OpenCV_INCLUDE_DIRS})
+endif ()
 
 #include_directories("3rdparty/*/include")
 

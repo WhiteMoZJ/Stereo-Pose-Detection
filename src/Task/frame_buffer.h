@@ -30,6 +30,7 @@ class FrameBuffer
 {
 public:
     explicit FrameBuffer(size_t size);
+    FrameBuffer() = delete;
     FrameBuffer(FrameBuffer&) = delete;
 
     ~FrameBuffer() = default;

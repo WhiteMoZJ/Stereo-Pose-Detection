@@ -22,7 +22,7 @@ Gui::~Gui()
     ImGui::DestroyContext();
 
     glfwDestroyWindow(_window);
-    glfwTerminate();
+    // glfwTerminate();
 }
 
 bool Gui::init(const char* window_name, const int width, const int height)
@@ -122,7 +122,7 @@ void Gui::updateWindow()
         if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("Vsync", &_isVsync);
             ImGui::Checkbox("Debug Message", &_showDebugInfo);
-            ImGui::Text("%.1f FPS/%.3f ms",
+            ImGui::Text("GUI Framerate: %.1f FPS/%.3f ms",
                         ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
             if (_showDebugInfo) {
                 ImGui::TextDisabled(("          Camera: " +  _settings.cameraName).c_str());

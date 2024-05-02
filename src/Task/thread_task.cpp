@@ -64,8 +64,8 @@ void ThreadTask::consume()
 
         Frame frame;
         if (!_backBuffer.getLatest(frame)) continue;
+        if (!_detectorPtr->detectBody(frame)) continue;
 
-        _detectorPtr->detectBody(frame);
     }
 }
 

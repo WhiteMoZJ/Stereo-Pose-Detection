@@ -44,8 +44,10 @@ Ubuntu 22.04.04
 ```
 
 ## Library based on
-- [OpenCV = 4.9.0](https://github.com/opencv/opencv)
+- [OpenCV >= 4.5.0(WITH_CUDA=ON)](https://github.com/opencv/opencv)
 - [Eigen = 3.4.0](https://eigen.tuxfamily.org)
 - [GLFW = 3.3.6](https://www.glfw.org/)
+- [Imgui = 1.90.5]()
 - [RealSense2SDK = 2.55.1](https://www.intelrealsense.com/sdk-2/)
 
+1600 ~ 2000ms to ~70ms
