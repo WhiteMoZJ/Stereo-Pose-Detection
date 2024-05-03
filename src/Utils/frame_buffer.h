@@ -20,7 +20,7 @@ struct Frame
      */
     bool isEmpty() const
     {
-        return images[0].empty() || images[1].empty();
+        return (images[0].empty() || images[1].empty());
     }
 };
 

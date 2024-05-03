@@ -6,11 +6,12 @@
 #define POINTSET_BUFFER_H
 
 #include "../stdafx.h"
+#include <Eigen/Dense>
 
 struct PointSet
 {
     size_t seq = 0;
-    std::array<std::array<cv::Point, 14>, 2> points;
+    std::array<std::array<Eigen::Vector2i, 14>, 2> points;
 };
 
 class PointsetBuffer

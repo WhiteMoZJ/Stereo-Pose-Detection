@@ -5,7 +5,7 @@
 #ifndef TOOL_H
 #define TOOL_H
 
-#include "../Task/frame_buffer.h"
+#include "frame_buffer.h"
 #include "../Device/camera.h"
 #include "../stdafx.h"
 

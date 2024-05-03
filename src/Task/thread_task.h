@@ -10,7 +10,6 @@
  * It will be changed to an option
  */
 
-#include "frame_buffer.h"
 #include "../Device/camera.h"
 #include "utils.h"
 #include "../stdafx.h"

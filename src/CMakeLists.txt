@@ -11,25 +11,32 @@ add_library(Interface SHARED
         ${IMGUI_SRC}
         Utils/tool.h
         Utils/tool.cpp
-        Task/frame_buffer.cpp
-        Task/frame_buffer.h
-        Task/thread_task.cpp
-        Task/thread_task.h
+        Utils/frame_buffer.cpp
+        Utils/frame_buffer.h
         Device/camera.cpp
         Device/camera.h
-        Task/utils.h
-        Utils/pointset_buffer.cpp
-        Utils/pointset_buffer.h
 )
 target_link_libraries(Interface ${OpenCV_LIBS} GL glfw ${realsense2_LIBRARY})
 
 # CUDA based library
-add_library(Detector SHARED Utils/body_detector.h Utils/body_detector.cpp)
+add_library(Detector SHARED
+        Utils/body_detector.cpp
+        Utils/body_detector.h
+        Utils/kalman_filter.cpp
+        Utils/kalman_filter.h
+        Utils/pointset_buffer.cpp
+        Utils/pointset_buffer.h
+)
 set_target_properties(Detector PROPERTIES CUDA_ARCHITECTURES 86)
 target_link_libraries(Detector ${OpenCV_LIBS} Eigen3::Eigen)
 target_compile_features(Detector PUBLIC cxx_std_14)
 
-add_executable(stereo_pose_detection main.cpp)
+add_executable(stereo_pose_detection
+        main.cpp
+        Task/utils.h
+        Task/thread_task.cpp
+        Task/thread_task.h
+)
 
 target_precompile_headers(stereo_pose_detection PUBLIC stdafx.h)
 target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})

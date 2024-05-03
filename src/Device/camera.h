@@ -45,6 +45,9 @@ struct CameraSettings
         return {_width, _height};
     }
 
+    const float fov[2]{87, 58};     // X Y fov
+    const float baseline = 55;
+
 private:
     int _width = 0, _height = 0;   // frame size
 };
@@ -57,9 +60,6 @@ public:
     Camera();
     Camera(const Camera&) = delete;
     ~Camera() = default;
-
-    rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
-    rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
 
     /**
      * @brief   Initiate camera
@@ -102,12 +102,10 @@ public:
      */
     Camera& operator >> (std::array<cv::Mat, 2> &imgs);
 
-    float fov[2]{79.144, 63.5818};   // X Y fov
-
-    cv::Mat camMat;                // camera matrix
-    cv::Mat disCoeff;              // distortion coefficients
-
 private:
+    rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
+    rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
+
     rs2::config             _cfg;              // realsense config
     rs2::pipeline           _pipe;             // realsense pipeline
 

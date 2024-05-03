@@ -7,5 +7,6 @@
 
 #include "../Utils/tool.h"
 #include "../Utils/body_detector.h"
+#include "../Utils/frame_buffer.h"
 
 #endif //UTILS_H
