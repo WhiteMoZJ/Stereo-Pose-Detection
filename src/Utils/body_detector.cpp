@@ -4,11 +4,11 @@
 
 #include "body_detector.h"
 
-#include <csignal>
+float BodyDetector::_framerate;
 
-
-BodyDetector::BodyDetector()
+BodyDetector::BodyDetector() : _pointsBuffer(3)
 {
+    _framerate = 0;
     net = cv::dnn::readNet(modelBin, modelTxt);
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
@@ -25,18 +25,16 @@ BodyDetector::BodyDetector()
 #endif
 }
 
-bool BodyDetector::detectBody(Frame frame)
+bool BodyDetector::detectBody(const Frame &frame)
 {
     if (frame.isEmpty()) return false;
-
-    PointSet pointset;
-    pointset.seq = frame.seq;
+    PointArray points{};
 
     for (int i = 0; i < 2; i++) {
         cv::Mat dst;
+        for (auto &x : imgv)
+            frame.images[i].copyTo(x);
 
-        // seems may cause SIGSEGV
-        cv::Mat imgv[3]{frame.images[i].clone(), frame.images[i].clone(), frame.images[i].clone()};
         cv::merge(imgv, 3, dst);
 
         cv::Mat inputBlob = cv::dnn::blobFromImage(dst, scale,
@@ -53,26 +51,27 @@ bool BodyDetector::detectBody(Frame frame)
             cv::Mat heatMap(H, W, CV_32F, prob_4D.ptr(0, n));
 
             // 1 maximum per heatmap
-            cv::Point p(-1, -1),pm;
+            cv::Point p(-1, -1), pm{};
             double conf;
             minMaxLoc(heatMap, nullptr, &conf, nullptr, &pm);
 
             if (conf > thresh)
                 p = pm;
-            pointset.points[i][n].x() = p.x;
-            pointset.points[i][n].y() = p.y;
+            points[i][n].x() = p.x;
+            points[i][n].y() = p.y;
         }
-
-#ifdef DEBUG
-        std::cout << pointset.points[0][0].transpose() << "\n";
-#endif
-        // _pointsbuffer.push(pointset);
     }
+
+    _pointsBuffer.push(PointSet{frame.seq, points});
     return true;
 }
 
 
 void BodyDetector::solve3D()
 {
-    
+#ifdef DEBUG
+    PointSet set;
+    _pointsBuffer.getLatest(set);
+    std::cout << set.points[0][0].transpose() << "\n";
+#endif
 }

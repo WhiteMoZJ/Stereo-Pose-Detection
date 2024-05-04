@@ -6,7 +6,7 @@
 
 // Gui class function
 Gui::Gui():
-    frontBuffer(6)
+    frontBuffer(3)
 {
     _texture = 0;
     _clearColor = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);

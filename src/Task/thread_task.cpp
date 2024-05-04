@@ -11,10 +11,10 @@ ThreadTask::ThreadTask():
     _guiPtr(std::make_unique<Gui>()),
     _isShoutdown(false),
     _canDisplay(false),
-    _middleBuffer(6),
-    _backBuffer(6)
+    _middleBuffer(3),
+    _backBuffer(3)
 {
-    _startTime = std::chrono::high_resolution_clock::now();
+    _startTime = getNow();
 }
 
 ThreadTask::~ThreadTask()
@@ -66,7 +66,7 @@ void ThreadTask::consume()
         if (!_backBuffer.getLatest(frame)) continue;
 
         if (!_detectorPtr->detectBody(frame)) continue;
-
+        _detectorPtr->solve3D();
     }
 }
 
@@ -87,13 +87,14 @@ void ThreadTask::display()
 void ThreadTask::threadInfo(const MSGType type, const char *info) const
 {
 #ifdef DEBUG
+    constexpr std::array<const char*, 5> msgs{"START", "END", "EXIT", "WARNING", "ERROR"};
     const int time = static_cast<int>(getTimeStamp());
-    if (type > _msgs.size() - 1) {
+    if (type > 4) {
         printf("[ INFO@%02d:%02d:%02d:%03d] Message type undefined\n",
                time/3600000, time/60000%60, time/1000%60, time%1000);
     }
     printf("[ INFO@%02d:%02d:%02d.%03d] %s:%s\n",
-           time/3600000, time/60000%60, time/1000%60, time%1000, _msgs[type], info);
+           time/3600000, time/60000%60, time/1000%60, time%1000, msgs[type], info);
 #endif  //DEBUG
 }
 

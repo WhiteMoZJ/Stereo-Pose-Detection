@@ -8,10 +8,12 @@
 #include "../stdafx.h"
 #include <Eigen/Dense>
 
+typedef std::array<std::array<Eigen::Vector2i, 14>, 2> PointArray;
+
 struct PointSet
 {
     size_t seq = 0;
-    std::array<std::array<Eigen::Vector2i, 14>, 2> points;
+    PointArray points{};
 };
 
 class PointsetBuffer

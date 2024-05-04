@@ -14,17 +14,6 @@
 #include "utils.h"
 #include "../stdafx.h"
 
-typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double,std::milli>> timer;
-
-enum MSGType
-{
-    MSG_START   = 0,
-    MSG_END     = 1,
-    MSG_EXIT    = 2,
-    MSG_WARN    = 3,
-    MSG_ERR     = 4
-};
-
 class ThreadTask
 {
 public:
@@ -66,9 +55,6 @@ private:
     FrameBuffer _middleBuffer, _backBuffer;
     timer _startTime;
 
-
-    std::array<const char*, 5> _msgs{"START", "END", "EXIT", "WARNING", "ERROR"};
-
     /**
      * @brief Output thread information in cmd.
      * @param type Info type(START END WARNING ERROR...)
@@ -83,7 +69,7 @@ private:
     double getTimeStamp() const
     {
         return (static_cast<std::chrono::duration<double,std::milli>>
-         (std::chrono::high_resolution_clock::now() - _startTime)).count();
+         (getNow() - _startTime)).count();
     }
 };
 

@@ -23,7 +23,7 @@ public:
      * @param   frame Frame object
      * @return  Detect successful
      */
-    bool detectBody(Frame frame);
+    bool detectBody(const Frame &frame);
 
     /**
      * @brief   Solve body points in 3D
@@ -31,7 +31,10 @@ public:
      */
     void solve3D();
 
-    double getFramerate();
+    static float getFramerate()
+    {
+        return _framerate;
+    };
 
 private:
     const std::string modelTxt = "../data/models/pose_deploy_linevec_faster_4_stages.prototxt";
@@ -48,6 +51,11 @@ private:
     float scale = 0.003922;
     const int npairs = 14, nparts = 16;
     cv::dnn::Net net;
+    static float _framerate;
+
+    PointsetBuffer _pointsBuffer;
+    cv::Mat imgv[3]{};
+
 };
 
 

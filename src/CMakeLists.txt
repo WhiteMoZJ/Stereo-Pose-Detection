@@ -40,6 +40,6 @@ add_executable(stereo_pose_detection
 
 target_precompile_headers(stereo_pose_detection PUBLIC stdafx.h)
 target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})
-
+set_target_properties(stereo_pose_detection PROPERTIES LINK_FLAG "-wl,--stack,20971520")
 set_property(TARGET stereo_pose_detection PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(stereo_pose_detection Interface Detector)
