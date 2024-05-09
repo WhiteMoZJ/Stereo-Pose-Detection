@@ -4,7 +4,7 @@
 
 #include "camera.h"
 
-device::Camera::Camera()
+Camera::Camera()
 {
     _fps            = 0;    // auto
     _frameCount     = 0;
@@ -13,7 +13,7 @@ device::Camera::Camera()
 }
 
 // !TODO: hot-plugging
-bool device::Camera::setUpStream()
+bool Camera::setUpStream()
 {
     _frameCount = 0;
     _selectedDevice = nullptr;
@@ -50,7 +50,7 @@ bool device::Camera::setUpStream()
     return _isStreamOpen;
 }
 
-bool device::Camera::startStream()
+bool Camera::startStream()
 {
     const rs2::frameset frameset = _pipe.wait_for_frames();
     if (!frameset) {
@@ -65,7 +65,7 @@ bool device::Camera::startStream()
     return true;
 }
 
-bool device::Camera::endStream()
+bool Camera::endStream()
 {
     // cv::destroyAllWindows();
     _pipe.stop();
@@ -74,7 +74,7 @@ bool device::Camera::endStream()
     return true;
 }
 
-device::Camera &device::Camera::operator >> (std::array<cv::Mat, 2> &imgs)
+Camera &Camera::operator >> (std::array<cv::Mat, 2> &imgs)
 {
     cv::Mat(_settings.getResolution(), CV_8UC1, const_cast<void*>(ir_frame_left.get_data())).copyTo(imgs[0]);
     cv::Mat(_settings.getResolution(), CV_8UC1, const_cast<void*>(ir_frame_right.get_data())).copyTo(imgs[1]);

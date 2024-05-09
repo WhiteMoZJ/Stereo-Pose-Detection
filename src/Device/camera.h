@@ -52,8 +52,6 @@ private:
     int _width = 0, _height = 0;   // frame size
 };
 
-namespace device
-{
 class Camera
 {
 public:
@@ -118,6 +116,5 @@ private:
     bool                    _isStreamOpen;
 
 };
-}
 
 #endif //CAMERA_H

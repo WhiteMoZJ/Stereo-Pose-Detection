@@ -6,7 +6,7 @@
 
 
 ThreadTask::ThreadTask():
-    _cameraPtr(std::make_unique<device::Camera>()),
+    _cameraPtr(std::make_unique<Camera>()),
     _detectorPtr(std::make_unique<BodyDetector>()),
     _guiPtr(std::make_unique<Gui>()),
     _isShoutdown(false),

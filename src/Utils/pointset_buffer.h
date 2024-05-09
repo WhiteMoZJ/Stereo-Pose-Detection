@@ -8,7 +8,7 @@
 #include "../stdafx.h"
 #include <Eigen/Dense>
 
-typedef std::array<std::array<Eigen::Vector2i, 14>, 2> PointArray;
+typedef std::array<std::array<Eigen::Vector2i, 16>, 2> PointArray;
 
 struct PointSet
 {

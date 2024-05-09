@@ -29,7 +29,7 @@ public:
      * @brief   Solve body points in 3D
      * @param
      */
-    void solve3D();
+    Eigen::Vector3d solve3D();
 
     static float getFramerate()
     {
@@ -54,7 +54,6 @@ private:
     static float _framerate;
 
     PointsetBuffer _pointsBuffer;
-    cv::Mat imgv[3]{};
 
 };
 

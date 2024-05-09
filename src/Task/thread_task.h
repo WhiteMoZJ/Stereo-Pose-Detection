@@ -44,7 +44,7 @@ public:
     void display();
 
 private:
-    std::unique_ptr<device::Camera> _cameraPtr;             // unique Camera object
+    std::unique_ptr<Camera> _cameraPtr;             // unique Camera object
     std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
     std::unique_ptr<Gui> _guiPtr;
 

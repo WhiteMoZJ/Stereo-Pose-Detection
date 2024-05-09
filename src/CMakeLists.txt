@@ -22,10 +22,10 @@ target_link_libraries(Interface ${OpenCV_LIBS} GL glfw ${realsense2_LIBRARY})
 add_library(Detector SHARED
         Utils/body_detector.cpp
         Utils/body_detector.h
-        Utils/kalman_filter.cpp
-        Utils/kalman_filter.h
         Utils/pointset_buffer.cpp
         Utils/pointset_buffer.h
+        Utils/kalman_filter.cpp
+        Utils/kalman_filter.h
 )
 set_target_properties(Detector PROPERTIES CUDA_ARCHITECTURES 86)
 target_link_libraries(Detector ${OpenCV_LIBS} Eigen3::Eigen)

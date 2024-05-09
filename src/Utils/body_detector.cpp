@@ -32,13 +32,11 @@ bool BodyDetector::detectBody(const Frame &frame)
 
     for (int i = 0; i < 2; i++) {
         cv::Mat dst;
-        for (auto &x : imgv)
-            frame.images[i].copyTo(x);
-
+        const cv::Mat imgv[3]{frame.images[i], frame.images[i], frame.images[i]};
         cv::merge(imgv, 3, dst);
 
         cv::Mat inputBlob = cv::dnn::blobFromImage(dst, scale,
-            cv::Size(368,368), cv::Scalar(0, 0, 0), true, false);
+            cv::Size(320,240), cv::Scalar(0, 0, 0), true, false);
         net.setInput(inputBlob);
         cv::Mat prob_4D = net.forward();
 
@@ -67,11 +65,13 @@ bool BodyDetector::detectBody(const Frame &frame)
 }
 
 
-void BodyDetector::solve3D()
+Eigen::Vector3d BodyDetector::solve3D()
 {
-#ifdef DEBUG
     PointSet set;
     _pointsBuffer.getLatest(set);
+#ifdef DEBUG
     std::cout << set.points[0][0].transpose() << "\n";
 #endif
+
+    return Eigen::Vector3d{0, 0, 0};
 }

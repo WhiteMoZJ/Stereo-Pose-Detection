@@ -29,7 +29,6 @@ bool PointsetBuffer::push(const PointSet& pointset)
         _tailIdx = (_tailIdx + 1) % _pointsets.size();
     }
     _headIdx = newHeadIdx;
-    _lastSeq = pointset.seq;
     return true;
 }
 
