@@ -4,17 +4,19 @@
 
 #include "kalman_filter.h"
 
-KalmanFilter::KalmanFilter(double R1_value, double R2_value, double Q_value)
+KalmanFilter::KalmanFilter(float R1_value, float R2_value, float Q_value)
 {
 
 }
 
-void KalmanFilter::update()
+void KalmanFilter::predict(Eigen::Vector3f &Z)
 {
+    const Eigen::Matrix<float, 4, 1> X_k = A * X;
+    P = A * P * A.transpose() + R;
 
-}
+    K = P * C.transpose() * (C * P * C.transpose() + Q).inverse();
+    X = X_k + K * (Z - C * X_k);
+    P = (Eigen::Matrix<float, 4, 4>::Identity() - K * C) + P;
 
-void KalmanFilter::predict()
-{
-
+    Z = Eigen::Vector3f{X[0], X[1], X[3]};
 }

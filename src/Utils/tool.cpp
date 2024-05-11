@@ -21,21 +21,15 @@ Gui::~Gui()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(_window);
-    // glfwTerminate();
+    glfwTerminate();
 }
 
 bool Gui::init(const char* window_name, const int width, const int height)
 {
-    ImGui::CreateContext();
-    ImGui::GetIO().IniFilename = "../configs/config.ini";
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    ImGui::StyleColorsClassic();
-
-    glfwSetErrorCallback(glfw_error_callback);
     if(!glfwInit()){
         return false;
     }
+    glfwSetErrorCallback(glfw_error_callback);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
@@ -45,6 +39,11 @@ bool Gui::init(const char* window_name, const int width, const int height)
         return false;
     }
     glfwMakeContextCurrent(_window);
+
+    ImGui::CreateContext();
+    ImGui::GetIO().IniFilename = "../configs/config.ini";
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    ImGui::StyleColorsClassic();
 
     ImGui_ImplGlfw_InitForOpenGL(_window, true);
     ImGui_ImplOpenGL3_Init("#version 410");
@@ -142,18 +141,20 @@ void Gui::updateWindow()
 
     if (ImGui::Begin("Pose", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-
+        renderPose();
     	ImGui::End();
     }
 }
 
+void Gui::renderPose()
+{
+    ImGuiIO& io = ImGui::GetIO();
+}
+
 void Gui::clear() const
 {
-    glClearColor(_clearColor.x * _clearColor.w, _clearColor.y * _clearColor.w,
-                 _clearColor.z * _clearColor.w, _clearColor.w);
+    glClearColor(_clearColor.x, _clearColor.y, _clearColor.z, _clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
     if (_texture)
-    {
         glDeleteTextures(1, &_texture);
-    }
 }

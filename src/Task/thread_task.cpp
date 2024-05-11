@@ -66,7 +66,6 @@ void ThreadTask::consume()
         if (!_backBuffer.getLatest(frame)) continue;
 
         if (!_detectorPtr->detectBody(frame)) continue;
-        _detectorPtr->solve3D();
     }
 }
 
@@ -79,6 +78,7 @@ void ThreadTask::display()
 
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
     while (!_isShoutdown) {
+
         _isShoutdown = !_guiPtr->update();
         // 1 ms lagging time to display
     }

@@ -8,8 +8,9 @@
 #include "../stdafx.h"
 #include "frame_buffer.h"
 #include "pointset_buffer.h"
-#include "../Device/camera.h"
+// #include "kalman_filter.h"
 
+typedef std::array<Eigen::Vector3f, 16> SpacePoints;
 
 class BodyDetector
 {
@@ -29,7 +30,7 @@ public:
      * @brief   Solve body points in 3D
      * @param
      */
-    Eigen::Vector3d solve3D();
+    SpacePoints solve3D();
 
     static float getFramerate()
     {
@@ -54,6 +55,7 @@ private:
     static float _framerate;
 
     PointsetBuffer _pointsBuffer;
+    // std::unique_ptr<KalmanFilter> _kalman_filter;
 
 };
 

@@ -10,14 +10,20 @@
 class KalmanFilter
 {
 public:
-    KalmanFilter(double R1_value, double R2_value, double Q_value);
-    static void update();
-    static void predict();
+    explicit KalmanFilter(float R1_value, float R2_value, float Q_value);
+    KalmanFilter() = delete;
+    void predict(Eigen::Vector3f &Z);
 
 private:
-    static Eigen::Matrix3d X;
-    const int X_N = 3, Z_N = 1;
+    Eigen::Matrix<float, 4, 1> X;  //
+    Eigen::Matrix<float, 4, 4> A;
+    Eigen::Matrix<float, 4, 4> P;
+    Eigen::Matrix<float, 4, 4> R;
+    Eigen::Matrix<float, 4, 3> K;
+    Eigen::Matrix<float, 3, 4> C;
+    Eigen::Matrix<float, 4, 4> Q;
 
+    const int X_N = 4, Z_N = 3;
 };
 
 

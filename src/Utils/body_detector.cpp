@@ -65,7 +65,7 @@ bool BodyDetector::detectBody(const Frame &frame)
 }
 
 
-Eigen::Vector3d BodyDetector::solve3D()
+SpacePoints BodyDetector::solve3D()
 {
     PointSet set;
     _pointsBuffer.getLatest(set);
@@ -73,5 +73,5 @@ Eigen::Vector3d BodyDetector::solve3D()
     std::cout << set.points[0][0].transpose() << "\n";
 #endif
 
-    return Eigen::Vector3d{0, 0, 0};
+    return SpacePoints{};
 }

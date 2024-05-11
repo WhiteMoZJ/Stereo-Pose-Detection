@@ -45,6 +45,8 @@ public:
 private:
     void updateWindow();
 
+    void renderPose();
+
     void clear() const;
 
     static void glfw_error_callback(const int error, const char* description)
@@ -55,10 +57,13 @@ private:
     GLFWwindow*     _window{};
     GLuint          _texture;
     ImVec4          _clearColor;
+    ImVec4          _mouseData;
+
     bool            _showDebugInfo, _isVsync;
+    float           _gamma; // just affect display
+
     cv::Mat         _mergedImg;
     Frame           _displayFrame;
-    float           _gamma; // just affect display
     CameraSettings& _settings = CameraSettings::getSettings();
 };
 

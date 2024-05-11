@@ -24,8 +24,8 @@ add_library(Detector SHARED
         Utils/body_detector.h
         Utils/pointset_buffer.cpp
         Utils/pointset_buffer.h
-        Utils/kalman_filter.cpp
-        Utils/kalman_filter.h
+#        Utils/kalman_filter.cpp
+#        Utils/kalman_filter.h
 )
 set_target_properties(Detector PROPERTIES CUDA_ARCHITECTURES 86)
 target_link_libraries(Detector ${OpenCV_LIBS} Eigen3::Eigen)
@@ -40,6 +40,5 @@ add_executable(stereo_pose_detection
 
 target_precompile_headers(stereo_pose_detection PUBLIC stdafx.h)
 target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(stereo_pose_detection PROPERTIES LINK_FLAG "-wl,--stack,20971520")
 set_property(TARGET stereo_pose_detection PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(stereo_pose_detection Interface Detector)
