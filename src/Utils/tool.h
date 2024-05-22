@@ -57,7 +57,7 @@ private:
     GLFWwindow*     _window{};
     GLuint          _texture;
     ImVec4          _clearColor;
-    ImVec4          _mouseData;
+    ImVec4          _mouseData{};
 
     bool            _showDebugInfo, _isVsync;
     float           _gamma; // just affect display

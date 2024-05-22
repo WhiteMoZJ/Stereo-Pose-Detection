@@ -146,9 +146,49 @@ void Gui::updateWindow()
     }
 }
 
+#define V2 ImVec2
+void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t)
+{
+    a.x += s.x/2, a.y += s.y / 2;
+    float S = sin(m.x), C = cos(m.x), x = 50, y, z = (m.y * 2 - 1) * x;
+    float v[8][3] { { x, x, z+x }, { x, -x, z+x }, { -x, -x, z+x }, { -x, x, z+x },
+            { x, x, z-x }, { x, -x, z-x }, { -x, -x, z-x }, { -x, x, z-x } };
+    for (auto & i : v) {
+        x = i[0] * C - i[1] * S;
+        y = i[0] * S + i[1] * C + 120;
+        z = i[2];
+        i[0] = x / y * 80;
+        i[1] = z / y * 80;
+        i[2] = y;
+    }
+#define L(A,B) z = 500 / (v[A][2] + v[B][2]); \
+d->AddLine(V2(a.x+v[A][0],a.y+v[A][1]),V2(a.x+v[B][0],a.y+v[B][1]),-1u,z);
+    L(0, 1) L(1, 2) L(2, 3) L(0, 3)
+    L(4, 5) L(5, 6) L(6, 7) L(4, 7)
+    L(0, 4) L(1, 5) L(2, 6) L(3, 7)
+}
+
 void Gui::renderPose()
 {
     ImGuiIO& io = ImGui::GetIO();
+
+    ImVec2 size(1035, 880 * 0.9);
+    ImGui::InvisibleButton("canvas", size);
+    ImVec2 p0 = ImGui::GetItemRectMin();
+    ImVec2 p1 = ImGui::GetItemRectMax();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->PushClipRect(p0, p1);
+
+    if (io.KeyCtrl) {
+
+        _mouseData.x = (io.MousePos.x - _mouseData.x) / size.x;
+        _mouseData.y = (io.MousePos.y - _mouseData.y) / size.y;
+        _mouseData.z = io.MouseDownDuration[0] - _mouseData.z;
+        _mouseData.w = io.MouseDownDuration[1] - _mouseData.w;
+    }
+
+    FX(draw_list, p0, p1, size, _mouseData, (float)ImGui::GetTime());
+    draw_list->PopClipRect();
 }
 
 void Gui::clear() const

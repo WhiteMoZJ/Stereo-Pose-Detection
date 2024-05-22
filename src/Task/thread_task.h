@@ -5,11 +5,6 @@
 #ifndef THREAD_TASK_H
 #define THREAD_TASK_H
 
-/*
- * Macro to control info output
- * It will be changed to an option
- */
-
 #include "../Device/camera.h"
 #include "utils.h"
 #include "../stdafx.h"
