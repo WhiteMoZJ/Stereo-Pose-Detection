@@ -8,13 +8,21 @@
 #include <librealsense2/rs.hpp>
 #include "../stdafx.h"
 
+/**
+ * @brief Struct to store camera settings
+ */
 struct CameraSettings
 {
+    float size = 0.4;                           // Size of the camera
+    std::string cameraName{"Unknown"};          // Name of the camera
+    std::string firmwareVersion{"Unknown"};     // Firmware version of the camera
+    std::string serialNum{"Unknown"};           // Serial number of the camera
 
-    float size = 0.4;
-    std::string cameraName{"Unknown"}, firmwareVersion{"Unknown"}, serialNum{"Unknown"};
-
-
+    /**
+     * @brief Get the CameraSettings object
+     * 
+     * @return CameraSettings& The CameraSettings object
+     */
     static CameraSettings& getSettings()
     {
         static CameraSettings settings;
@@ -22,9 +30,10 @@ struct CameraSettings
     }
 
     /**
-     * @brief   Initiate video frame
-     * @param   width   video frame width
-     * @param   height  video frame height
+     * @brief Set the resolution of the camera
+     * 
+     * @param width The width of the video frame
+     * @param height The height of the video frame
      */
     void setResolution(const int width, const int height)
     {
@@ -37,8 +46,9 @@ struct CameraSettings
     }
 
     /**
-     * @brief   Get resolution
-     * @return  cv::Size(_width, _height)
+     * @brief Get the resolution of the camera
+     * 
+     * @return cv::Size The resolution of the camera
      */
     cv::Size getResolution() const
     {
@@ -52,6 +62,9 @@ private:
     int _width = 0, _height = 0;   // frame size
 };
 
+/**
+ * @brief Class representing a camera
+ */
 class Camera
 {
 public:
@@ -60,43 +73,51 @@ public:
     ~Camera() = default;
 
     /**
-     * @brief   Initiate camera
-     * @return  Is camera start successful
+     * @brief Set up the camera stream
+     * 
+     * @return true if the camera stream is set up successfully, false otherwise
      */
     bool setUpStream();
 
-    // video stream control
     /**
-     * @brief   Start camera streaming
-     * @return  Is streaming
+     * @brief Start the camera streaming
+     * 
+     * @return true if the camera streaming is started successfully, false otherwise
      */
     bool startStream();
 
     /**
-     * @brief   End camera streaming
-     * @return  Is streaming
+     * @brief End the camera streaming
+     * 
+     * @return true if the camera streaming is ended successfully, false otherwise
      */
     bool endStream();
 
     /**
-     * @brief   Get frame count
-     * @return  _frameCount(private number variable)
+     * @brief Get the frame count
+     * 
+     * @return size_t The frame count
      */
     size_t getFrameCount() const
     {
         return _frameCount;
     }
 
+    /**
+     * @brief Check if the camera is opened
+     * 
+     * @return true if the camera is opened, false otherwise
+     */
     bool isOpened() const
     {
         return _isStreamOpen;
     }
 
     /**
-     * @brief   Operator overloading
-
-     Transfer Camera frames to Frame images
-     * @param   imgs cv::Mat array
+     * @brief Operator overloading to transfer camera frames to frame images
+     * 
+     * @param imgs The cv::Mat array to store the frame images
+     * @return Camera& The Camera object
      */
     Camera& operator >> (std::array<cv::Mat, 2> &imgs);
 
@@ -114,7 +135,6 @@ private:
     unsigned int            _frameCount;       // count of frame
     int                     _fps;
     bool                    _isStreamOpen;
-
 };
 
 #endif //CAMERA_H

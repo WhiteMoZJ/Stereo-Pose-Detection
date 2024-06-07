@@ -6,24 +6,63 @@
 #define KALMAN_FILTER_H
 #include <Eigen/Dense>
 
-
-class KalmanFilter
-{
+/**
+ * @brief The KalmanFilter class represents a Kalman filter implementation.
+ */
+class KalmanFilter {
 public:
-    explicit KalmanFilter(float R1_value, float R2_value, float Q_value);
-    KalmanFilter() = delete;
-    void predict(Eigen::Vector3f &Z);
+    /**
+     * @brief Default constructor for the KalmanFilter class.
+     */
+    KalmanFilter() = default;
+
+    /**
+     * @brief Default destructor for the KalmanFilter class.
+     */
+    ~KalmanFilter() = default;
+
+    /**
+     * @brief Initializes the Kalman filter with the given parameters.
+     * @param x0 The initial state vector.
+     * @param P0 The initial state covariance matrix.
+     * @param F The state transition matrix.
+     * @param Q The process covariance matrix.
+     * @param H The measurement matrix.
+     * @param R The measurement covariance matrix.
+     */
+    void init(const Eigen::VectorXd& x0, const Eigen::MatrixXd& P0, const Eigen::MatrixXd& F,
+              const Eigen::MatrixXd& Q, const Eigen::MatrixXd& H, const Eigen::MatrixXd& R);
+
+    /**
+     * @brief Predicts the next state of the system.
+     */
+    void predict();
+
+    /**
+     * @brief Updates the state estimate based on the given measurement.
+     * @param z The measurement vector.
+     */
+    void update(const Eigen::VectorXd& z);
+
+    /**
+     * @brief Returns the current state vector.
+     * @return The current state vector.
+     */
+    Eigen::VectorXd getState() const;
+
+    /**
+     * @brief Returns the current state covariance matrix.
+     * @return The current state covariance matrix.
+     */
+    Eigen::MatrixXd getCovariance() const;
 
 private:
-    Eigen::Matrix<float, 4, 1> X;  //
-    Eigen::Matrix<float, 4, 4> A;
-    Eigen::Matrix<float, 4, 4> P;
-    Eigen::Matrix<float, 4, 4> R;
-    Eigen::Matrix<float, 4, 3> K;
-    Eigen::Matrix<float, 3, 4> C;
-    Eigen::Matrix<float, 4, 4> Q;
-
-    const int X_N = 4, Z_N = 3;
+    Eigen::VectorXd x_; // state vector
+    Eigen::MatrixXd P_; // state covariance matrix
+    Eigen::MatrixXd F_; // state transition matrix
+    Eigen::MatrixXd Q_; // process covariance matrix
+    Eigen::MatrixXd H_; // measurement matrix
+    Eigen::MatrixXd R_; // measurement covariance matrix
 };
 
 

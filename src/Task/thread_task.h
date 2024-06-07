@@ -9,38 +9,40 @@
 #include "utils.h"
 #include "../stdafx.h"
 
+/**
+ * @class ThreadTask
+ * @brief Represents a thread task for camera frame processing and display.
+ */
 class ThreadTask
 {
 public:
     ThreadTask();
-    ThreadTask(const ThreadTask&) = delete; // Non-copied thread
+    ThreadTask(const ThreadTask&) = delete;
     ~ThreadTask();
 
     /**
-     * @brief   Initiate thread setting
+     * @brief Initializes the thread task.
      */
     void init();
 
     /**
-     * @brief   Load camera frame to buffer
+     * @brief Loads camera frame to buffer.
      */
     void produce();
 
     /**
-     * @brief   Read frame from buffer
-
-     Detect body & Calculate 3D points
+     * @brief Reads frame from buffer, detects body, and calculates 3D points.
      */
     void consume();
 
     /**
-     * @brief   Display in GUI
+     * @brief Displays the processed frame in the GUI.
      */
     void display();
 
 private:
     std::unique_ptr<Camera> _cameraPtr;             // unique Camera object
-    std::unique_ptr<BodyDetector> _detectorPtr;             // unique BodyDetector object
+    std::unique_ptr<BodyDetector> _detectorPtr;     // unique BodyDetector object
     std::unique_ptr<Gui> _guiPtr;
 
     bool _isShoutdown; // controlled by display thread
@@ -51,22 +53,20 @@ private:
     timer _startTime;
 
     /**
-     * @brief Output thread information in cmd.
-     * @param type Info type(START END WARNING ERROR...)
-     * @param info Information
-    */
+     * @brief Outputs thread information in the command line.
+     * @param type The type of information (START, END, WARNING, ERROR, etc.).
+     * @param info The information to display.
+     */
     inline void threadInfo(MSGType type, const char *info) const;
 
     /**
-     * @brief   Get current time in ms
-     * @return  Time stamp
+     * @brief Gets the current time in milliseconds.
+     * @return The time stamp in milliseconds.
      */
     double getTimeStamp() const
     {
-        return (static_cast<std::chrono::duration<double,std::milli>>
-         (getNow() - _startTime)).count();
+        return (static_cast<std::chrono::duration<double, std::milli>>(getNow() - _startTime)).count();
     }
 };
-
 
 #endif //THREAD_TASK_H

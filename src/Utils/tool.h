@@ -14,8 +14,12 @@
 #include "../Imgui/imgui_impl_opengl3.h"
 
 #include <GLFW/glfw3.h> // be sure glfw inluded after imgui
+#include <Eigen/Dense>
 
 
+/**
+ * @brief The Gui class represents a graphical user interface created using Imgui.
+ */
 class Gui
 {
 public:
@@ -24,31 +28,48 @@ public:
     ~Gui();
 
     /**
-     * @brief   Initiate GUI create by Imgui
+     * @brief Initializes the GUI created by Imgui.
      *
-     * (Must be used in the thread where showImage() is)
-     * @param   window_name     window title
-     * @param   width           window width
-     * @param   height          widow height
-     * @return  Initiate successful
+     * This function must be used in the thread where showImage() is called.
+     *
+     * @param window_name The title of the window.
+     * @param width The width of the window.
+     * @param height The height of the window.
+     * @return true if the initialization is successful, false otherwise.
      */
     bool init(const char* window_name = "window", int width = 1600, int height = 900);
 
     /**
-     * @brief   Show GUI
-     * @return  Is GUI running
+     * @brief Shows the GUI.
+     *
+     * @return true if the GUI is running, false otherwise.
      */
     bool update();
 
-    FrameBuffer frontBuffer;
+    FrameBuffer frontBuffer; /**< The front buffer used for rendering. */
 
 private:
+    /**
+     * @brief Updates the window.
+     */
     void updateWindow();
 
+    /**
+     * @brief Renders the pose.
+     */
     void renderPose();
 
+    /**
+     * @brief Clears the GUI.
+     */
     void clear() const;
 
+    /**
+     * @brief GLFW error callback function.
+     *
+     * @param error The error code.
+     * @param description The error description.
+     */
     static void glfw_error_callback(const int error, const char* description)
     {
         fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -58,14 +79,11 @@ private:
     GLuint          _texture;
     ImVec4          _clearColor;
     ImVec4          _mouseData{};
-
     bool            _showDebugInfo, _isVsync;
-    float           _gamma; // just affect display
-
+    float           _gamma;
     cv::Mat         _mergedImg;
     Frame           _displayFrame;
     CameraSettings& _settings = CameraSettings::getSettings();
 };
 
-
-#endif //TOOL_H
+#endif // TOOL_H

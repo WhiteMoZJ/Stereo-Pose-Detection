@@ -16,7 +16,7 @@ add_library(Interface SHARED
         Device/camera.cpp
         Device/camera.h
 )
-target_link_libraries(Interface ${OpenCV_LIBS} GL glfw ${realsense2_LIBRARY})
+target_link_libraries(Interface ${OpenCV_LIBS} GL glfw ${realsense2_LIBRARY} Eigen3::Eigen)
 
 # CUDA based library
 add_library(Detector SHARED
@@ -31,14 +31,14 @@ set_target_properties(Detector PROPERTIES CUDA_ARCHITECTURES 86)
 target_link_libraries(Detector ${OpenCV_LIBS} Eigen3::Eigen)
 target_compile_features(Detector PUBLIC cxx_std_14)
 
-add_executable(stereo_pose_detection
+add_executable(${PROJECT_NAME}
         main.cpp
         Task/utils.h
         Task/thread_task.cpp
         Task/thread_task.h
 )
 
-target_precompile_headers(stereo_pose_detection PUBLIC stdafx.h)
-target_link_libraries(stereo_pose_detection ${CMAKE_THREAD_LIBS_INIT})
-set_property(TARGET stereo_pose_detection PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(stereo_pose_detection Interface Detector)
+target_precompile_headers(${PROJECT_NAME} PUBLIC stdafx.h)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(${PROJECT_NAME} Interface Detector)

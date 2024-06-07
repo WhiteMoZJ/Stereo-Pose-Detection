@@ -12,6 +12,9 @@
 
 typedef std::array<Eigen::Vector3f, 16> SpacePoints;
 
+/**
+ * @brief Class for detecting and solving body points in 3D.
+ */
 class BodyDetector
 {
 public:
@@ -20,18 +23,22 @@ public:
     ~BodyDetector()  = default;
 
     /**
-     * @brief   Detect body from frame
-     * @param   frame Frame object
-     * @return  Detect successful
+     * @brief Detects the body from a frame.
+     * @param frame The Frame object.
+     * @return True if the body is successfully detected, false otherwise.
      */
     bool detectBody(const Frame &frame);
 
     /**
-     * @brief   Solve body points in 3D
-     * @param
+     * @brief Solves the body points in 3D.
+     * @return The 3D space points of the body.
      */
     SpacePoints solve3D();
 
+    /**
+     * @brief Gets the framerate.
+     * @return The framerate.
+     */
     static float getFramerate()
     {
         return _framerate;

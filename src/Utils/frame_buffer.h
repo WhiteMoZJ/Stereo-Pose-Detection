@@ -8,15 +8,18 @@
 
 #include "../stdafx.h"
 
-// frame: with 2 images and time stamp
+/**
+ * @brief   Represents a frame with two images and a timestamp.
+ */
 struct Frame
 {
-    std::array<cv::Mat, 2> images{};
-    size_t seq = 0;
-    double timeStamp = 0.f;
+    std::array<cv::Mat, 2> images{}; // Array of two images
+    size_t seq = 0; // Sequence number
+    double timeStamp = 0.f; // Timestamp
 
     /**
-     * @brief   To make sure both the two stereo frames are not empty
+     * @brief   Checks if both stereo frames are empty.
+     * @return  True if both frames are empty, false otherwise.
      */
     bool isEmpty() const
     {
@@ -24,41 +27,47 @@ struct Frame
     }
 };
 
-// frame buffer class
-// to push the frames in it
+/**
+ * @brief   Represents a frame buffer that stores Frame objects.
+ */
 class FrameBuffer
 {
 public:
+    /**
+     * @brief   Constructs a FrameBuffer object with the specified size.
+     * @param   size The size of the frame buffer.
+     */
     explicit FrameBuffer(size_t size);
+
     FrameBuffer() = delete;
     FrameBuffer(FrameBuffer&) = delete;
 
     ~FrameBuffer() = default;
 
     /**
-     * @brief   Push Frame object to frame buffer
-     * @param   frame Frame object
-     * @return  Is successful
+     * @brief   Pushes a Frame object to the frame buffer.
+     * @param   frame The Frame object to push.
+     * @return  True if the push operation is successful, false otherwise.
      */
     bool push(const Frame &frame);
 
     /**
-     * @brief   Get latest Frame object from frame buffer
-     * @param   frame Frame object to assign
-     * @return  Is successful
+     * @brief   Gets the latest Frame object from the frame buffer.
+     * @param   frame The Frame object to assign the latest frame to.
+     * @return  True if the get operation is successful, false otherwise.
      */
     bool getLatest(Frame &frame);
 
     /**
-     * @brief Swap frame between two buffer
-     * @param buffer    To which buffer
-     * @return  Swap successful
+     * @brief   Swaps the latest frame from this buffer to the specified buffer.
+     * @param   buffer The FrameBuffer object to swap the latest frame to.
+     * @return  True if the swap operation is successful, false otherwise.
      */
     bool swapLatestTo(FrameBuffer &buffer) const;
 
     /**
-     * @brief   Get buffer empty status
-     * @return  Empty status
+     * @brief   Checks if the frame buffer is empty.
+     * @return  True if the frame buffer is empty, false otherwise.
      */
     bool isEmpty() const
     {
@@ -66,14 +75,13 @@ public:
     }
 
 private:
-    std::vector<Frame> _frames;
-    std::vector<std::timed_mutex> _mutexs;
+    std::vector<Frame> _frames;             // Vector of Frame objects
+    std::vector<std::timed_mutex> _mutexs;  // Vector of timed mutexes
 
-    size_t _tailIdx;
-    size_t _headIdx;
+    size_t _tailIdx;                        // Index of the tail frame
+    size_t _headIdx;                        // Index of the head frame
 
-    double _lastGetTimeStamp;
+    double _lastGetTimeStamp;               // Timestamp of the last get operation
 };
-
 
 #endif //FRAME_BUFFER_H

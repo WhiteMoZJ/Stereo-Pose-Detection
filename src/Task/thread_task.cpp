@@ -4,7 +4,6 @@
 
 #include "thread_task.h"
 
-
 ThreadTask::ThreadTask():
     _cameraPtr(std::make_unique<Camera>()),
     _detectorPtr(std::make_unique<BodyDetector>()),
@@ -24,6 +23,10 @@ ThreadTask::~ThreadTask()
     threadInfo(MSG_EXIT, "Program Exit(0)");
 }
 
+/**
+ * Sets up the camera stream and prints a message indicating the initialization of the camera.
+ * If no device is connected, an error message is printed.
+ */
 void ThreadTask::init()
 {
     std::unique_lock<std::mutex> thread_lock(_mtx);
@@ -36,6 +39,12 @@ void ThreadTask::init()
     threadInfo(MSG_START, "Start Streaming...");
 }
 
+/**
+ * Sleeps for 100 milliseconds and then acquires frames from the camera stream.
+ * The acquired frames are pushed into the middle buffer for further processing.
+ * If the middle buffer is full, the oldest frame is discarded.
+ * The latest frame is also pushed into the front buffer and the back buffer for display.
+ */
 void ThreadTask::produce()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -55,6 +64,10 @@ void ThreadTask::produce()
     }
 }
 
+/**
+ * If the frames are ready for display, the latest frame is retrieved from the back buffer.
+ * The body detection algorithm is then applied to the frame.
+ */
 void ThreadTask::consume()
 {
     std::cout << "consume\n";
@@ -69,6 +82,10 @@ void ThreadTask::consume()
     }
 }
 
+/**
+ * Initializes the GUI and waits for the camera stream.
+ * While the program is running, the GUI is updated continuously.
+ */
 void ThreadTask::display()
 {
     if (!_guiPtr->init("Pose Detection")) {
@@ -84,6 +101,10 @@ void ThreadTask::display()
     }
 }
 
+/**
+ * Prints the timestamp and the message type along with the provided information.
+ * This function is only enabled when the DEBUG macro is defined.
+ */
 void ThreadTask::threadInfo(const MSGType type, const char *info) const
 {
 #ifdef DEBUG
