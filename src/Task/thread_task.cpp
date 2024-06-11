@@ -27,12 +27,10 @@ ThreadTask::~ThreadTask()
  * Sets up the camera stream and prints a message indicating the initialization of the camera.
  * If no device is connected, an error message is printed.
  */
-void ThreadTask::init()
+void ThreadTask::init() const
 {
-    std::unique_lock<std::mutex> thread_lock(_mtx);
-    if (!_cameraPtr->setUpStream()) {
+    while (!_cameraPtr->setUpStream()) {
         threadInfo(MSG_ERR, "No device connect");
-        return;
     }
 
     threadInfo(MSG_START, "Camera Initiated");

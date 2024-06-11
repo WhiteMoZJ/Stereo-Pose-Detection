@@ -23,7 +23,7 @@ public:
     /**
      * @brief Initializes the thread task.
      */
-    void init();
+    void init() const;
 
     /**
      * @brief Loads camera frame to buffer.
@@ -50,7 +50,7 @@ private:
 
     std::mutex _mtx;
     FrameBuffer _middleBuffer, _backBuffer;
-    timer _startTime;
+    tick _startTime;
 
     /**
      * @brief Outputs thread information in the command line.

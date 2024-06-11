@@ -70,7 +70,7 @@ class Camera
 public:
     Camera();
     Camera(const Camera&) = delete;
-    ~Camera() = default;
+    ~Camera();
 
     /**
      * @brief Set up the camera stream
@@ -122,8 +122,10 @@ public:
     Camera& operator >> (std::array<cv::Mat, 2> &imgs);
 
 private:
-    rs2::video_frame ir_frame_left = rs2::video_frame(rs2::frame());
-    rs2::video_frame ir_frame_right = rs2::video_frame(rs2::frame());
+    void deviceMonitor();
+
+    rs2::video_frame        ir_frame_left = rs2::video_frame(rs2::frame());
+    rs2::video_frame        ir_frame_right = rs2::video_frame(rs2::frame());
 
     rs2::config             _cfg;              // realsense config
     rs2::pipeline           _pipe;             // realsense pipeline
@@ -135,6 +137,9 @@ private:
     unsigned int            _frameCount;       // count of frame
     int                     _fps;
     bool                    _isStreamOpen;
+
+    std::thread             _deviceMonitorThread;   // thread to monitor device
+    std::atomic<bool>       _isMonitoring{};          // flag to monitor device
 };
 
 #endif //CAMERA_H
