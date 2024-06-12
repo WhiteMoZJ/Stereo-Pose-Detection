@@ -8,7 +8,7 @@
 #include "../stdafx.h"
 #include <Eigen/Dense>
 
-typedef std::array<std::array<Eigen::Vector2i, 16>, 2> PointArray;
+typedef std::array<std::array<Eigen::Vector2i, 2>, 16> PointArray;
 
 /**
  * @brief Represents a set of points with a sequence number.

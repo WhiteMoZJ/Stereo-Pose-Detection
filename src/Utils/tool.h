@@ -16,6 +16,8 @@
 #include <GLFW/glfw3.h> // be sure glfw inluded after imgui
 #include <Eigen/Dense>
 
+typedef std::array<Eigen::Vector3f, 16> SpacePoints;
+
 
 /**
  * @brief The Gui class represents a graphical user interface created using Imgui.
@@ -57,7 +59,7 @@ private:
     /**
      * @brief Renders the pose.
      */
-    void renderPose();
+    void renderPose(const SpacePoints& body_points);
 
     /**
      * @brief Clears the GUI.

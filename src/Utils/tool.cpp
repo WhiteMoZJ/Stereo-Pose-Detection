@@ -108,8 +108,6 @@ void Gui::updateWindow()
         }
 
     	if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-    		// ImGui::SliderFloat("size", &settings.size, 0.3, 1, "%.2f x");
-
     	    {   // gamma setting slider
     	        ImGui::SliderFloat("Gamma", &_gamma, 0.1f, 5.0f, "%.1f");
     	        ImGui::SameLine();
@@ -141,7 +139,7 @@ void Gui::updateWindow()
 
     if (ImGui::Begin("Pose", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        renderPose();
+        renderPose({});
     	ImGui::End();
     }
 }
@@ -168,7 +166,7 @@ void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, const std::vector<E
     }
 }
 
-void Gui::renderPose()
+void Gui::renderPose(const SpacePoints& body_points)
 {
     ImGuiIO& io = ImGui::GetIO();
 

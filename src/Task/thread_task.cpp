@@ -77,6 +77,7 @@ void ThreadTask::consume()
         if (!_backBuffer.getLatest(frame)) continue;
 
         if (!_detectorPtr->detectBody(frame)) continue;
+        _detectorPtr->solve3D();
     }
 }
 

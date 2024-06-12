@@ -92,6 +92,11 @@ Camera &Camera::operator >> (std::array<cv::Mat, 2> &imgs)
     return *this;
 }
 
+/*
+ * Monitor the device status
+ * If the device is disconnected, try to set up the stream again
+ * If the device is reconnected, the stream will not be set up again
+ */
 void Camera::deviceMonitor()
 {
     while (_isMonitoring) {
@@ -100,7 +105,7 @@ void Camera::deviceMonitor()
             setUpStream();
             std::cerr << "No Device Detected, Reconnecting" << std::endl;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 

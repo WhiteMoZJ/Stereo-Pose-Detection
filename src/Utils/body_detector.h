@@ -8,6 +8,7 @@
 #include "../stdafx.h"
 #include "frame_buffer.h"
 #include "pointset_buffer.h"
+#include "../Device/camera.h"
 // #include "kalman_filter.h"
 
 typedef std::array<Eigen::Vector3f, 16> SpacePoints;
@@ -62,6 +63,7 @@ private:
     static float _framerate;
 
     PointsetBuffer _pointsBuffer;
+    CameraSettings& _cameraSettings = CameraSettings::getSettings();
     // std::unique_ptr<KalmanFilter> _kalman_filter;
 
 };
