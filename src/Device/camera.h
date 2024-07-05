@@ -55,8 +55,8 @@ struct CameraSettings
         return {_width, _height};
     }
 
-    const float fov[2]{87, 58};     // X Y fov
-    const float baseline = 55;  // mm
+    const float fov[2]{87.0, 58.0};     // X Y fov
+    const float baseline = 55.0;  // mm
 
 private:
     int _width = 0, _height = 0;   // frame size

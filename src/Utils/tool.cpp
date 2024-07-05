@@ -51,7 +51,7 @@ bool Gui::init(const char* window_name, const int width, const int height)
     return true;
 }
 
-bool Gui::update()
+bool Gui::update(PointSet& pointset)
 {
     if (!glfwWindowShouldClose(_window)) {
         clear();
@@ -62,6 +62,7 @@ bool Gui::update()
 
         ImGui::NewFrame();
         updateWindow();
+        updatePose(pointset);
         ImGui::Render();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -90,6 +91,8 @@ void Gui::updateWindow()
 
     if (ImGui::Begin("Info", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+
+        // camera viewport
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
             const cv::Size size(static_cast<int>(_mergedImg.cols * 0.4), static_cast<int>(_mergedImg.rows * 0.4));
             cv::resize(_mergedImg, _mergedImg, size, 0, 0, cv::INTER_NEAREST_EXACT);
@@ -107,6 +110,7 @@ void Gui::updateWindow()
                          ImVec2(static_cast<float>(_mergedImg.cols), static_cast<float>(_mergedImg.rows)));
         }
 
+        // setting options viewport
     	if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
     	    {   // gamma setting slider
     	        ImGui::SliderFloat("Gamma", &_gamma, 0.1f, 5.0f, "%.1f");
@@ -116,6 +120,7 @@ void Gui::updateWindow()
     	    }
     	}
 
+        // status viewport
         if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Checkbox("Vsync", &_isVsync);
             ImGui::Checkbox("Debug Message", &_showDebugInfo);
@@ -136,64 +141,52 @@ void Gui::updateWindow()
 
         ImGui::End();
     }
-
-    if (ImGui::Begin("Pose", nullptr,
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        renderPose({});
-    	ImGui::End();
-    }
 }
 
 #define V2 ImVec2
-void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, const std::vector<Eigen::Vector3f>& points)
+/**
+ * @brief Render the pose
+ * get the space points and render the pose
+ * calculate the perspective projection of the 3D points
+ *
+ * @param d The ImDrawList object.
+ * @param a upper-left corner
+ * @param b lower-right corner
+ * @param s size (== b - a)
+ * @param m x,y = mouse position (normalized so 0,0 over 'a'; 1,1 is over 'b', not clamped)
+ *          z,w = left/right button held. <-1.0f not pressed, 0.0f just pressed, >0.0f time held.
+ * @param t time
+ */
+void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, Eigen::Vector3f& points)
 {
-    a.x += s.x/2, a.y += s.y / 2;
-    float S = sin(m.x), C = cos(m.x), x, y, z;
-
-    for (const auto& point : points) {
-        x = point.x() * C - point.y() * S;
-        y = point.x() * S + point.y() * C + 120;
-        z = point.z();
-
-        x = x / y * 80;
-        y = z / y * 80;
-
-        // x y controlled by mouse
-        x += m.x * 100;
-        y += m.y * 100;
-
-        d->AddCircleFilled(ImVec2(a.x + x, a.y + y), 5, ImColor(255, 255, 255));
-    }
+    // Draw the pose
+    ImVec2 p = ImVec2(points.x(), points.y());
+    d->AddCircleFilled(p, 5, IM_COL32(255, 0, 0, 255));
 }
 
-void Gui::renderPose(const SpacePoints& body_points)
+void Gui::updatePose(PointSet& pointset) const
 {
-    ImGuiIO& io = ImGui::GetIO();
+    // pose viewport
+    if (ImGui::Begin("Pose", nullptr,
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        ImGuiIO& io = ImGui::GetIO();
+        ImVec2 size(320.0f, 180.0f);
+        ImGui::InvisibleButton("canvas", size);
+        ImVec2 p0 = ImGui::GetItemRectMin();
+        ImVec2 p1 = ImGui::GetItemRectMax();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        draw_list->PushClipRect(p0, p1);
 
-    ImVec2 size(1035, 880 * 0.9);
-    ImGui::InvisibleButton("canvas", size);
-    ImVec2 p0 = ImGui::GetItemRectMin();
-    ImVec2 p1 = ImGui::GetItemRectMax();
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->PushClipRect(p0, p1);
+        ImVec4 mouse_data;
+        mouse_data.x = (io.MousePos.x - p0.x) / size.x;
+        mouse_data.y = (io.MousePos.y - p0.y) / size.y;
+        mouse_data.z = io.MouseDownDuration[0];
+        mouse_data.w = io.MouseDownDuration[1];
 
-    if (io.MouseDown[0]) {
-        _mouseData.z += io.MouseDelta.x / size.x;
-        _mouseData.w += io.MouseDelta.y / size.y;
+        FX(draw_list, p0, p1, size, mouse_data, static_cast<float>(ImGui::GetTime()), pointset.points[0]);
+        draw_list->PopClipRect();
+        ImGui::End();
     }
-    if (io.MouseDown[1]) {
-        _mouseData.x += io.MouseDelta.x / size.x;
-        _mouseData.y += io.MouseDelta.y / size.y;
-    }
-    // wheel control zoom
-    if (io.MouseWheel) {
-        size.x += io.MouseWheel * 100;
-        size.y += io.MouseWheel * 100;
-    }
-
-    std::vector<Eigen::Vector3f> points{Eigen::Vector3f{0, 0, 0}, Eigen::Vector3f{1, 0, 0}};
-    FX(draw_list, p0, p1, size, _mouseData, (float)ImGui::GetTime(), points);
-    draw_list->PopClipRect();
 }
 
 void Gui::clear() const

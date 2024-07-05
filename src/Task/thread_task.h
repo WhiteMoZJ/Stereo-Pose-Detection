@@ -50,7 +50,10 @@ private:
 
     std::mutex _mtx;
     FrameBuffer _middleBuffer, _backBuffer;
+    PointsetBuffer _spacePointsBuffer;
     tick _startTime;
+
+    SpacePoints current_points;
 
     /**
      * @brief Outputs thread information in the command line.

@@ -4,9 +4,8 @@
 
 #include "kalman_filter.h"
 
-void KalmanFilter::init(const Eigen::VectorXd& x0, const Eigen::MatrixXd& P0, 
-                        const Eigen::MatrixXd& F, const Eigen::MatrixXd& Q, 
-                        const Eigen::MatrixXd& H, const Eigen::MatrixXd& R)
+KalmanFilter::KalmanFilter(const Eigen::VectorXd& x0, const Eigen::MatrixXd& P0, const Eigen::MatrixXd& F,
+                                const Eigen::MatrixXd& Q, const Eigen::MatrixXd& H, const Eigen::MatrixXd& R)
 {
     x_ = x0;
     P_ = P0;
@@ -35,9 +34,4 @@ void KalmanFilter::update(const Eigen::VectorXd& z)
 Eigen::VectorXd KalmanFilter::getState() const
 {
     return x_;
-}
-
-Eigen::MatrixXd KalmanFilter::getCovariance() const
-{
-    return P_;
 }

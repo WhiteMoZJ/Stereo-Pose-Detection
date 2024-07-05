@@ -6,6 +6,7 @@
 #define TOOL_H
 
 #include "frame_buffer.h"
+#include "pointset_buffer.h"
 #include "../Device/camera.h"
 #include "../stdafx.h"
 
@@ -14,9 +15,6 @@
 #include "../Imgui/imgui_impl_opengl3.h"
 
 #include <GLFW/glfw3.h> // be sure glfw inluded after imgui
-#include <Eigen/Dense>
-
-typedef std::array<Eigen::Vector3f, 16> SpacePoints;
 
 
 /**
@@ -44,11 +42,12 @@ public:
     /**
      * @brief Shows the GUI.
      *
+     * @param pointset The PointSet object to display.
      * @return true if the GUI is running, false otherwise.
      */
-    bool update();
+    bool update(PointSet& pointset);
 
-    FrameBuffer frontBuffer; /**< The front buffer used for rendering. */
+    FrameBuffer frontBuffer;
 
 private:
     /**
@@ -57,9 +56,11 @@ private:
     void updateWindow();
 
     /**
-     * @brief Renders the pose.
+     * @brief Updates the pose.
+     *
+     * @param pointset The PointSet object to display.
      */
-    void renderPose(const SpacePoints& body_points);
+    void updatePose(PointSet& pointset) const;
 
     /**
      * @brief Clears the GUI.
@@ -83,9 +84,12 @@ private:
     ImVec4          _mouseData{};
     bool            _showDebugInfo, _isVsync;
     float           _gamma;
+
     cv::Mat         _mergedImg;
     Frame           _displayFrame;
     CameraSettings& _settings = CameraSettings::getSettings();
+
+    SpacePoints     _lastSpacePoints;
 };
 
 #endif // TOOL_H

@@ -12,9 +12,13 @@
 #include <thread>
 #include <atomic>
 #include <condition_variable>
-#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/dnn.hpp>
+#include <Eigen/Dense>
 
 typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double,std::milli>> tick;
+typedef std::array<std::array<Eigen::Vector3f, 2>, 16> PointArray;
+typedef std::array<Eigen::Vector3f, 16> SpacePoints;
 
 enum MSGType
 {

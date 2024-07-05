@@ -66,6 +66,7 @@ bool Camera::startStream()
     if (!_isStreamOpen) return false;
     const rs2::frameset frameset = _pipe.wait_for_frames();
     _isStreamOpen = frameset ? true : false;
+    _isMonitoring = _isStreamOpen;
     if (frameset) {
 
         // get left and right infrared frames from frameset

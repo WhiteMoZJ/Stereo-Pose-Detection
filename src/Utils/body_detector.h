@@ -11,8 +11,6 @@
 #include "../Device/camera.h"
 // #include "kalman_filter.h"
 
-typedef std::array<Eigen::Vector3f, 16> SpacePoints;
-
 /**
  * @brief Class for detecting and solving body points in 3D.
  */
@@ -28,13 +26,7 @@ public:
      * @param frame The Frame object.
      * @return True if the body is successfully detected, false otherwise.
      */
-    bool detectBody(const Frame &frame);
-
-    /**
-     * @brief Solves the body points in 3D.
-     * @return The 3D space points of the body.
-     */
-    SpacePoints solve3D();
+    SpacePoints detectBody(const Frame &frame);
 
     /**
      * @brief Gets the framerate.
@@ -46,6 +38,12 @@ public:
     };
 
 private:
+    /**
+     * @brief Solves the body points in 3D.
+     * @return The 3D space points of the body.
+     */
+    SpacePoints solve3D(PointArray& points) const;
+
     const std::string modelTxt = "../data/models/pose_deploy_linevec_faster_4_stages.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
 
@@ -62,7 +60,6 @@ private:
     cv::dnn::Net net;
     static float _framerate;
 
-    PointsetBuffer _pointsBuffer;
     CameraSettings& _cameraSettings = CameraSettings::getSettings();
     // std::unique_ptr<KalmanFilter> _kalman_filter;
 

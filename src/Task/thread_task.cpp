@@ -11,7 +11,8 @@ ThreadTask::ThreadTask():
     _isShoutdown(false),
     _canDisplay(false),
     _middleBuffer(3),
-    _backBuffer(3)
+    _backBuffer(3),
+    _spacePointsBuffer(2)
 {
     _startTime = getNow();
 }
@@ -76,8 +77,9 @@ void ThreadTask::consume()
         Frame frame;
         if (!_backBuffer.getLatest(frame)) continue;
 
-        if (!_detectorPtr->detectBody(frame)) continue;
-        _detectorPtr->solve3D();
+        SpacePoints points = _detectorPtr->detectBody(frame);
+        if (points.empty()) continue;
+        _spacePointsBuffer.push(PointSet{frame.seq, points});
     }
 }
 
@@ -94,8 +96,9 @@ void ThreadTask::display()
 
     threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
     while (!_isShoutdown) {
-
-        _isShoutdown = !_guiPtr->update();
+        PointSet pointset;
+        _spacePointsBuffer.getLatest(pointset);
+        _isShoutdown = !_guiPtr->update(pointset);
         // 1 ms lagging time to display
     }
 }

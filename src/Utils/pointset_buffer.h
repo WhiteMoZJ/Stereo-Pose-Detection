@@ -6,9 +6,6 @@
 #define POINTSET_BUFFER_H
 
 #include "../stdafx.h"
-#include <Eigen/Dense>
-
-typedef std::array<std::array<Eigen::Vector2i, 2>, 16> PointArray;
 
 /**
  * @brief Represents a set of points with a sequence number.
@@ -16,7 +13,7 @@ typedef std::array<std::array<Eigen::Vector2i, 2>, 16> PointArray;
 struct PointSet
 {
     size_t seq = 0; /**< The sequence number of the point set. */
-    PointArray points{}; /**< The array of points. */
+    SpacePoints points{}; /**< The array of points. */
 };
 
 /**

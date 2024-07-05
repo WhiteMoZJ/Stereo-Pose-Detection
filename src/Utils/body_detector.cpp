@@ -6,7 +6,7 @@
 
 float BodyDetector::_framerate;
 
-BodyDetector::BodyDetector() : _pointsBuffer(3)
+BodyDetector::BodyDetector()
 {
     _framerate = 0;
     net = cv::dnn::readNet(modelBin, modelTxt);
@@ -25,10 +25,10 @@ BodyDetector::BodyDetector() : _pointsBuffer(3)
 #endif
 }
 
-bool BodyDetector::detectBody(const Frame &frame)
+SpacePoints BodyDetector::detectBody(const Frame &frame)
 {
     // Check if the frame is empty
-    if (frame.isEmpty()) return false;
+    if (frame.isEmpty()) return SpacePoints{};
     PointArray points{};
 
     // Loop over the images in the frame
@@ -62,32 +62,40 @@ bool BodyDetector::detectBody(const Frame &frame)
             minMaxLoc(heatMap, nullptr, &conf, nullptr, &pm);
 
             // If the maximum is greater than the threshold, update the point
-            if (conf > thresh)
+            if (conf > thresh) {
                 p = pm;
+                p.x *= (_cameraSettings.getResolution().width / W);
+                p.y *= (_cameraSettings.getResolution().height / H);
+            }
+
             points[n][i].x() = p.x;
             points[n][i].y() = p.y;
         }
     }
 
-    // Push the points to the buffer
-    _pointsBuffer.push(PointSet{frame.seq, points});
-    return true;
+    const SpacePoints space_points = solve3D(points);
+    return space_points;
 }
 
 
-SpacePoints BodyDetector::solve3D()
+SpacePoints BodyDetector::solve3D(PointArray& points) const
 {
-    PointSet set;
-    _pointsBuffer.getLatest(set);
-#ifdef DEBUG
-    std::cout << set.points[0][0].transpose() << "\n";
-#endif
+    SpacePoints spacePoints{};
 
-    // for (int i = 0; i < 16; i++)
-    // {
-    //     // 双目深度估计
-    //
-    // }
+    for (int i = 0; i < 16; i++)
+    {
+        if ((points[i][0].x() == -1 && points[i][0].y() == -1) || (points[i][1].x() == -1 && points[i][1].y() == -1))
+            spacePoints[i] = Eigen::Vector3f(-1, -1, -100);
 
-    return SpacePoints{};
+        else {
+            float x = (static_cast<float>(points[i][0].x()) + static_cast<float>(points[i][1].x())) / 2.0f
+                        - (static_cast<float>(_cameraSettings.getResolution().width) / 2.0f);
+            float y = -(static_cast<float>(points[i][0].y()) + static_cast<float>(points[i][1].y())) / 2.0f
+                        + (static_cast<float>(_cameraSettings.getResolution().height) / 2.0f);
+            float z = 0.2f * _cameraSettings.baseline / static_cast<float>(points[i][0].x() - points[i][1].x());
+
+            spacePoints[i] = Eigen::Vector3f(x, y, z);
+        }
+    }
+    return spacePoints;
 }
