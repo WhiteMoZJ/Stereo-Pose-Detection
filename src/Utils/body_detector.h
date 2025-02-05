@@ -9,7 +9,7 @@
 #include "frame_buffer.h"
 #include "pointset_buffer.h"
 #include "../Device/camera.h"
-// #include "kalman_filter.h"
+#include "kalman_filter.h"
 
 /**
  * @brief Class for detecting and solving body points in 3D.
@@ -32,7 +32,7 @@ public:
      * @brief Gets the framerate.
      * @return The framerate.
      */
-    static float getFramerate()
+    float getFramerate() const
     {
         return _framerate;
     };
@@ -44,7 +44,7 @@ private:
      */
     SpacePoints solve3D(PointArray& points) const;
 
-    const std::string modelTxt = "../data/models/pose_deploy_linevec_faster_4_stages.prototxt";
+    const std::string modelTxt = "../data/models/pose_deploy_linevec.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
 
     const int POSE_PAIRS[14][2] = { // MPI body
@@ -54,14 +54,15 @@ private:
      {9,10}, {14,11}, {11,12}, {12,13}
     };
 
-    float thresh = 0.1;
-    float scale = 0.003922;
-    const int npairs = 14, nparts = 16;
+    float thresh = 0.15;
+    float scale = 1.0 / 255;
+    const int nparts = 15;
     cv::dnn::Net net;
-    static float _framerate;
+
+    float _framerate;
 
     CameraSettings& _cameraSettings = CameraSettings::getSettings();
-    // std::unique_ptr<KalmanFilter> _kalman_filter;
+    std::unique_ptr<KalmanFilter> _kalman_filter;
 
 };
 

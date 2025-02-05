@@ -76,7 +76,7 @@ bool Gui::update(PointSet& pointset)
 void Gui::updateWindow()
 {
     frontBuffer.getLatest(_displayFrame);
-    _mergedImg = cv::Mat(480, 640 * 2 + 1, CV_8UC1, cv::Scalar(0));
+    _mergedImg = cv::Mat(_settings.getResolution().height, _settings.getResolution().width * 2 + 1, CV_8UC1, cv::Scalar(0));
 
 	if(!_displayFrame.isEmpty()) {
 		_displayFrame.images[0].copyTo(_mergedImg.colRange(0, _settings.getResolution().width));
@@ -156,12 +156,16 @@ void Gui::updateWindow()
  * @param m x,y = mouse position (normalized so 0,0 over 'a'; 1,1 is over 'b', not clamped)
  *          z,w = left/right button held. <-1.0f not pressed, 0.0f just pressed, >0.0f time held.
  * @param t time
+ * @param points The 3D space points.
  */
 void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, Eigen::Vector3f& points)
 {
-    // Draw the pose
+    // Draw projection of points as a ball in 3D space
     ImVec2 p = ImVec2(points.x(), points.y());
-    d->AddCircleFilled(p, 5, IM_COL32(255, 0, 0, 255));
+    ImVec2 q = ImVec2(points.x(), points.z());
+    ImVec2 r = ImVec2(points.y(), points.z());
+
+    d->AddCircleFilled(ImVec2(a.x + p.x * s.x, a.y + p.y * s.y), 3.0f, IM_COL32(255, 255, 255, 255));
 }
 
 void Gui::updatePose(PointSet& pointset) const
@@ -169,22 +173,21 @@ void Gui::updatePose(PointSet& pointset) const
     // pose viewport
     if (ImGui::Begin("Pose", nullptr,
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        ImGuiIO& io = ImGui::GetIO();
-        ImVec2 size(320.0f, 180.0f);
-        ImGui::InvisibleButton("canvas", size);
-        ImVec2 p0 = ImGui::GetItemRectMin();
-        ImVec2 p1 = ImGui::GetItemRectMax();
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->PushClipRect(p0, p1);
+        const ImVec2 size(ImGui::GetContentRegionAvailWidth(), ImGui::GetContentRegionAvail().y);
+        const ImVec2 pos(ImGui::GetCursorScreenPos());
+        const ImVec2 end(pos.x + size.x, pos.y + size.y);
 
-        ImVec4 mouse_data;
-        mouse_data.x = (io.MousePos.x - p0.x) / size.x;
-        mouse_data.y = (io.MousePos.y - p0.y) / size.y;
-        mouse_data.z = io.MouseDownDuration[0];
-        mouse_data.w = io.MouseDownDuration[1];
+        ImGui::GetWindowDrawList()->AddRectFilled(pos, end, IM_COL32(0, 0, 0, 255));
+        ImGui::GetWindowDrawList()->AddRect(pos, end, IM_COL32(255, 255, 255, 255));
 
-        FX(draw_list, p0, p1, size, mouse_data, static_cast<float>(ImGui::GetTime()), pointset.points[0]);
-        draw_list->PopClipRect();
+        const ImVec2 s = size;
+        const ImVec4 m = ImVec4(0, 0, 0, 0);
+        const float t = 0.0f;
+
+        for (int i = 0; i < 16; i++) {
+            FX(ImGui::GetWindowDrawList(), pos, end, s, m, t, pointset.points[i]);;
+        }
+
         ImGui::End();
     }
 }

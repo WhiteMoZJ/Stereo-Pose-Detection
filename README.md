@@ -6,7 +6,7 @@ Actually it's unfinished...
 - Model Download: https://github.com/CMU-Perceptual-Computing-Lab/openpose/tree/master/models/pose/mpi
 
 ## :computer: Operating System
-Ubuntu 22.04.04
+Ubuntu 20.04
 
 ## :electric_plug: Hardware
 - Camera: Intel RealSense Depth Camera D435i
@@ -44,8 +44,8 @@ Ubuntu 22.04.04
 ```
 
 ## Library based on
-- [OpenCV >= 4.5.0(WITH_CUDA=ON)](https://github.com/opencv/opencv)
-- [Eigen = 3.4.0](https://eigen.tuxfamily.org)
+- [OpenCV = 4.10.0(CUDA 12.6)](https://github.com/opencv/opencv)
+- [Eigen > 3.3.0](https://eigen.tuxfamily.org)
 - [GLFW = 3.3.6](https://www.glfw.org/)
 - [Imgui = 1.90.5]()
 - [RealSense2SDK = 2.55.1](https://www.intelrealsense.com/sdk-2/)

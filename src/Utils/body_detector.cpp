@@ -3,8 +3,7 @@
 //
 
 #include "body_detector.h"
-
-float BodyDetector::_framerate;
+#include <opencv2/opencv.hpp>
 
 BodyDetector::BodyDetector()
 {
@@ -31,6 +30,10 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
     if (frame.isEmpty()) return SpacePoints{};
     PointArray points{};
 
+    // create 2 black gray images
+    cv::Mat outimg_l = cv::Mat::zeros(_cameraSettings.getResolution().height* 2, _cameraSettings.getResolution().width* 2, CV_8UC3);
+    cv::Mat outimg_r = cv::Mat::zeros(_cameraSettings.getResolution().height* 2, _cameraSettings.getResolution().width* 2, CV_8UC3);
+
     // Loop over the images in the frame
     for (int i = 0; i < 2; i++) {
         cv::Mat dst;
@@ -41,7 +44,7 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
 
         // Create a blob from the image
         cv::Mat inputBlob = cv::dnn::blobFromImage(dst, scale,
-            cv::Size(240,240), cv::Scalar(0, 0, 0), true, false);
+            cv::Size(_cameraSettings.getResolution().width / 2, _cameraSettings.getResolution().height / 2), cv::Scalar(0, 0, 0), false, false);
         // Set the input to the network
         net.setInput(inputBlob);
         // Forward propagate through the network
@@ -64,14 +67,40 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
             // If the maximum is greater than the threshold, update the point
             if (conf > thresh) {
                 p = pm;
-                p.x *= (_cameraSettings.getResolution().width / W);
-                p.y *= (_cameraSettings.getResolution().height / H);
+                p.x *= (_cameraSettings.getResolution().width / W) * 2;
+                p.y *= (_cameraSettings.getResolution().height / H) * 2;
+
+                // apply kalman filter
+                // !TODO: refactor initial parameters for kalman filter
+                if (_kalman_filter == nullptr)
+                    _kalman_filter = std::make_unique<KalmanFilter>(
+                       Eigen::Vector3f(p.x, p.y, frame.timeStamp), Eigen::Matrix3f::Identity() * 1e-1,
+                       Eigen::Matrix3f::Identity(), Eigen::Matrix3f::Identity() * 1e-1,
+                       Eigen::Matrix3f::Identity() * 2, Eigen::Matrix3f::Identity() * 1e-1);
+
+                _kalman_filter->predict();
+                _kalman_filter->update(Eigen::Vector3f(p.x, p.y, frame.timeStamp));
+                points[n][i].x() = _kalman_filter->getState()[0];
+                points[n][i].y() = _kalman_filter->getState()[1];
+#ifdef DEBUG
+                cv::circle((i == 0) ? outimg_l : outimg_r, cv::Point(points[n][i].x(),points[n][i].y()), 5, cv::Scalar(0, 255, 255), -1);
+                cv::circle((i == 0) ? outimg_l : outimg_r, p, 5, cv::Scalar(255, 255, 255), -1);
+                cv::line((i == 0) ? outimg_l : outimg_r, p, cv::Point(points[n][i].x(),points[n][i].y()), cv::Scalar(255, 0, 0), 2);
+#endif
+            }
+            else {
+                points[n][i].x() = -1;
+                points[n][i].y() = -1;
             }
 
-            points[n][i].x() = p.x;
-            points[n][i].y() = p.y;
         }
     }
+#ifdef DEBUG
+    cv::imshow("Keypoints Left", outimg_l);
+    cv::imshow("Keypoints Right", outimg_r);
+    cv::waitKey(1);
+#endif
+
 
     const SpacePoints space_points = solve3D(points);
     return space_points;
@@ -92,9 +121,10 @@ SpacePoints BodyDetector::solve3D(PointArray& points) const
                         - (static_cast<float>(_cameraSettings.getResolution().width) / 2.0f);
             float y = -(static_cast<float>(points[i][0].y()) + static_cast<float>(points[i][1].y())) / 2.0f
                         + (static_cast<float>(_cameraSettings.getResolution().height) / 2.0f);
-            float z = 0.2f * _cameraSettings.baseline / static_cast<float>(points[i][0].x() - points[i][1].x());
+            float z = (points[i][0].x() != points[i][1].x()) ? 0.2f * _cameraSettings.baseline / static_cast<float>(points[i][0].x() - points[i][1].x()) : 0.0f;
 
             spacePoints[i] = Eigen::Vector3f(x, y, z);
+            // std::cout << z << "\n";
         }
     }
     return spacePoints;

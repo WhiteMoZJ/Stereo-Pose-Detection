@@ -4,8 +4,8 @@
 
 #include "kalman_filter.h"
 
-KalmanFilter::KalmanFilter(const Eigen::VectorXd& x0, const Eigen::MatrixXd& P0, const Eigen::MatrixXd& F,
-                                const Eigen::MatrixXd& Q, const Eigen::MatrixXd& H, const Eigen::MatrixXd& R)
+KalmanFilter::KalmanFilter(const Eigen::VectorXf& x0, const Eigen::MatrixXf& P0, const Eigen::MatrixXf& F,
+                                const Eigen::MatrixXf& Q, const Eigen::MatrixXf& H, const Eigen::MatrixXf& R)
 {
     x_ = x0;
     P_ = P0;
@@ -21,17 +21,17 @@ void KalmanFilter::predict()
     P_ = F_ * P_ * F_.transpose() + Q_;
 }
 
-void KalmanFilter::update(const Eigen::VectorXd& z)
+void KalmanFilter::update(const Eigen::VectorXf& z)
 {
-    Eigen::VectorXd y = z - H_ * x_;
-    Eigen::MatrixXd S = H_ * P_ * H_.transpose() + R_;
-    Eigen::MatrixXd K = P_ * H_.transpose() * S.inverse();
+    Eigen::VectorXf y = z - H_ * x_;
+    Eigen::MatrixXf S = H_ * P_ * H_.transpose() + R_;
+    Eigen::MatrixXf K = P_ * H_.transpose() * S.inverse();
 
     x_ = x_ + K * y;
-    P_ = (Eigen::MatrixXd::Identity(x_.size(), x_.size()) - K * H_) * P_;
+    P_ = (Eigen::MatrixXf::Identity(x_.size(), x_.size()) - K * H_) * P_;
 }
 
-Eigen::VectorXd KalmanFilter::getState() const
+Eigen::VectorXf KalmanFilter::getState() const
 {
     return x_;
 }

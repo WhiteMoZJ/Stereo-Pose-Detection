@@ -17,8 +17,8 @@
 #include <Eigen/Dense>
 
 typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double,std::milli>> tick;
-typedef std::array<std::array<Eigen::Vector3f, 2>, 16> PointArray;
-typedef std::array<Eigen::Vector3f, 16> SpacePoints;
+typedef std::array<std::array<Eigen::Vector3f, 2>, 15> PointArray;
+typedef std::array<Eigen::Vector3f, 15> SpacePoints;
 
 enum MSGType
 {

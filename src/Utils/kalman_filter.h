@@ -20,8 +20,8 @@ public:
      * @param H The measurement matrix.
      * @param R The measurement covariance matrix.
      */
-    KalmanFilter(const Eigen::VectorXd& x0, const Eigen::MatrixXd& P0, const Eigen::MatrixXd& F,
-                 const Eigen::MatrixXd& Q, const Eigen::MatrixXd& H, const Eigen::MatrixXd& R);
+    KalmanFilter(const Eigen::VectorXf& x0, const Eigen::MatrixXf& P0, const Eigen::MatrixXf& F,
+                 const Eigen::MatrixXf& Q, const Eigen::MatrixXf& H, const Eigen::MatrixXf& R);
 
     /**
      * @brief Default destructor for the KalmanFilter class.
@@ -37,21 +37,21 @@ public:
      * @brief Updates the state estimate based on the given measurement.
      * @param z The measurement vector.
      */
-    void update(const Eigen::VectorXd& z);
+    void update(const Eigen::VectorXf& z);
 
     /**
      * @brief Returns the current state vector.
      * @return The current state vector.
      */
-    Eigen::VectorXd getState() const;
+    Eigen::VectorXf getState() const;
 
 private:
-    Eigen::VectorXd x_; // state vector
-    Eigen::MatrixXd P_; // state covariance matrix
-    Eigen::MatrixXd F_; // state transition matrix
-    Eigen::MatrixXd Q_; // process covariance matrix
-    Eigen::MatrixXd H_; // measurement matrix
-    Eigen::MatrixXd R_; // measurement covariance matrix
+    Eigen::VectorXf x_; // state vector
+    Eigen::MatrixXf P_; // state covariance matrix
+    Eigen::MatrixXf F_; // state transition matrix
+    Eigen::MatrixXf Q_; // process covariance matrix
+    Eigen::MatrixXf H_; // measurement matrix
+    Eigen::MatrixXf R_; // measurement covariance matrix
 };
 
 
