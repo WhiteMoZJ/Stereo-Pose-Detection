@@ -9,19 +9,26 @@ BodyDetector::BodyDetector()
 {
     _framerate = 0;
     net = cv::dnn::readNet(modelBin, modelTxt);
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-    net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+    if (cv::cuda::getCudaEnabledDeviceCount() > 0) {
+        net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+        net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+    } else {
+        net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+        net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    }
+
+    if (net.empty()) {
+        throw std::runtime_error("Can't load network by using the following files:\nprototxt: " + modelTxt + "\ncaffemodel: " + modelBin);
+    }
 
 #ifdef DEBUG
-    if (net.empty())
-    {
-        std::cerr << "Can't load network by using the following files:"  << std::endl;
-        std::cerr << "prototxt:   " << modelTxt << std::endl;
-        std::cerr << "caffemodel: " << modelBin << std::endl;
-    }else{
-        std::cout << "pose.caffemodel was loaded successfully!" << std::endl;
-    }
+    std::cout << "pose.caffemodel was loaded successfully!" << std::endl;
 #endif
+
+    // Initialize KalmanFilter in the constructor
+    for (auto & i : _kalman_filter)
+        i = std::make_unique<KalmanFilter>(Eigen::Vector3f(0, 0, 0));
+
 }
 
 SpacePoints BodyDetector::detectBody(const Frame &frame)
@@ -30,9 +37,10 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
     if (frame.isEmpty()) return SpacePoints{};
     PointArray points{};
 
+    bool flag = false;
+
     // create 2 black gray images
-    cv::Mat outimg_l = cv::Mat::zeros(_cameraSettings.getResolution().height* 2, _cameraSettings.getResolution().width* 2, CV_8UC3);
-    cv::Mat outimg_r = cv::Mat::zeros(_cameraSettings.getResolution().height* 2, _cameraSettings.getResolution().width* 2, CV_8UC3);
+    cv::Mat outimg_l = cv::Mat::zeros(_cameraSettings.getResolution().height*2, _cameraSettings.getResolution().width*2, CV_8UC3);
 
     // Loop over the images in the frame
     for (int i = 0; i < 2; i++) {
@@ -44,7 +52,7 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
 
         // Create a blob from the image
         cv::Mat inputBlob = cv::dnn::blobFromImage(dst, scale,
-            cv::Size(_cameraSettings.getResolution().width / 2, _cameraSettings.getResolution().height / 2), cv::Scalar(0, 0, 0), false, false);
+            cv::Size(_cameraSettings.getResolution().width/2, _cameraSettings.getResolution().height/2), cv::Scalar(0, 0, 0), false, false);
         // Set the input to the network
         net.setInput(inputBlob);
         // Forward propagate through the network
@@ -67,40 +75,42 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
             // If the maximum is greater than the threshold, update the point
             if (conf > thresh) {
                 p = pm;
-                p.x *= (_cameraSettings.getResolution().width / W) * 2;
-                p.y *= (_cameraSettings.getResolution().height / H) * 2;
+                p.x *= _cameraSettings.getResolution().width * 2 / W;
+                p.y *= _cameraSettings.getResolution().height * 2 / H;
 
-                // apply kalman filter
-                // !TODO: refactor initial parameters for kalman filter
-                if (_kalman_filter == nullptr)
-                    _kalman_filter = std::make_unique<KalmanFilter>(
-                       Eigen::Vector3f(p.x, p.y, frame.timeStamp), Eigen::Matrix3f::Identity() * 1e-1,
-                       Eigen::Matrix3f::Identity(), Eigen::Matrix3f::Identity() * 1e-1,
-                       Eigen::Matrix3f::Identity() * 2, Eigen::Matrix3f::Identity() * 1e-1);
-
-                _kalman_filter->predict();
-                _kalman_filter->update(Eigen::Vector3f(p.x, p.y, frame.timeStamp));
-                points[n][i].x() = _kalman_filter->getState()[0];
-                points[n][i].y() = _kalman_filter->getState()[1];
-#ifdef DEBUG
-                cv::circle((i == 0) ? outimg_l : outimg_r, cv::Point(points[n][i].x(),points[n][i].y()), 5, cv::Scalar(0, 255, 255), -1);
-                cv::circle((i == 0) ? outimg_l : outimg_r, p, 5, cv::Scalar(255, 255, 255), -1);
-                cv::line((i == 0) ? outimg_l : outimg_r, p, cv::Point(points[n][i].x(),points[n][i].y()), cv::Scalar(255, 0, 0), 2);
-#endif
+                points[i](n, 0) = static_cast<float>(p.x);
+                points[i](n, 1) = static_cast<float>(p.y);
             }
             else {
-                points[n][i].x() = -1;
-                points[n][i].y() = -1;
+                points[i](n, 0) = -1;
+                points[i](n, 1) = -1;
+                flag = true;
             }
+        }
 
+
+        _kalman_filter[i]->predict();
+        if (flag)
+            continue;
+        else {
+            _kalman_filter[i]->update(Eigen::Vector3f(points[i](0, 0), points[i](0, 1), frame.timeStamp));
+            points[i](0, 0) = _kalman_filter[i]->getState()(0);
+            points[i](0, 1) = _kalman_filter[i]->getState()(1);
+             {
+                for (int j = 0; j < 15; j++) {
+                    if (i == 0)
+                        cv::circle(outimg_l, cv::Point(points[i](j, 0), points[i](j, 1)), 3, cv::Scalar(0, 255, 0), 1);
+                    else cv::circle(outimg_l, cv::Point(points[i](j, 0), points[i](j, 1)), 3, cv::Scalar(255, 0, 0), 1);
+                }
+            }
         }
     }
-#ifdef DEBUG
-    cv::imshow("Keypoints Left", outimg_l);
-    cv::imshow("Keypoints Right", outimg_r);
-    cv::waitKey(1);
-#endif
 
+
+    cv::imshow("outimg_l", outimg_l);
+    // cv::imshow("outimg_r", frame.images[0]);
+    cv::waitKey(1);
+    //
 
     const SpacePoints space_points = solve3D(points);
     return space_points;
@@ -111,20 +121,20 @@ SpacePoints BodyDetector::solve3D(PointArray& points) const
 {
     SpacePoints spacePoints{};
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 15; i++)
     {
-        if ((points[i][0].x() == -1 && points[i][0].y() == -1) || (points[i][1].x() == -1 && points[i][1].y() == -1))
+        if (points[i](0, 0) == -1 || points[i](0, 0) == -1)
             spacePoints[i] = Eigen::Vector3f(-1, -1, -100);
 
         else {
-            float x = (static_cast<float>(points[i][0].x()) + static_cast<float>(points[i][1].x())) / 2.0f
+            float x = ((points[i](0,0)) + (points[i](1,0))) / 2.0f
                         - (static_cast<float>(_cameraSettings.getResolution().width) / 2.0f);
-            float y = -(static_cast<float>(points[i][0].y()) + static_cast<float>(points[i][1].y())) / 2.0f
+            float y = -((points[i](0,1)) + (points[i](1,1))) / 2.0f
                         + (static_cast<float>(_cameraSettings.getResolution().height) / 2.0f);
-            float z = (points[i][0].x() != points[i][1].x()) ? 0.2f * _cameraSettings.baseline / static_cast<float>(points[i][0].x() - points[i][1].x()) : 0.0f;
+            float z = 0.2f * _cameraSettings.baseline / (x - y);
 
-            spacePoints[i] = Eigen::Vector3f(x, y, z);
-            // std::cout << z << "\n";
+            spacePoints[i] = Eigen::Vector3f(x, y, -z);
+            std::cout << -z << "\n";
         }
     }
     return spacePoints;

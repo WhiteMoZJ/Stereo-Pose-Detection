@@ -47,14 +47,14 @@ private:
     const std::string modelTxt = "../data/models/pose_deploy_linevec.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
 
-    const int POSE_PAIRS[14][2] = { // MPI body
-     {0,1}, {1,2}, {2,3},
-     {3,4}, {1,5}, {5,6},
-     {6,7}, {1,14}, {14,8}, {8,9},
-     {9,10}, {14,11}, {11,12}, {12,13}
-    };
+    // const int POSE_PAIRS[14][2] = { // MPI body
+    //  {0,1}, {1,2}, {2,3},
+    //  {3,4}, {1,5}, {5,6},
+    //  {6,7}, {1,14}, {14,8}, {8,9},
+    //  {9,10}, {14,11}, {11,12}, {12,13}
+    // };
 
-    float thresh = 0.15;
+    float thresh = 0.2;
     float scale = 1.0 / 255;
     const int nparts = 15;
     cv::dnn::Net net;
@@ -62,7 +62,7 @@ private:
     float _framerate;
 
     CameraSettings& _cameraSettings = CameraSettings::getSettings();
-    std::unique_ptr<KalmanFilter> _kalman_filter;
+    std::unique_ptr<KalmanFilter> _kalman_filter[2];
 
 };
 

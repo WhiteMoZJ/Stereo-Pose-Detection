@@ -20,8 +20,7 @@ public:
      * @param H The measurement matrix.
      * @param R The measurement covariance matrix.
      */
-    KalmanFilter(const Eigen::VectorXf& x0, const Eigen::MatrixXf& P0, const Eigen::MatrixXf& F,
-                 const Eigen::MatrixXf& Q, const Eigen::MatrixXf& H, const Eigen::MatrixXf& R);
+    explicit KalmanFilter(const Eigen::VectorXf& x0);
 
     /**
      * @brief Default destructor for the KalmanFilter class.

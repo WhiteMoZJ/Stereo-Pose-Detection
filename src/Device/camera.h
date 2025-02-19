@@ -18,6 +18,8 @@ struct CameraSettings
     std::string firmwareVersion{"Unknown"};     // Firmware version of the camera
     std::string serialNum{"Unknown"};           // Serial number of the camera
 
+    Eigen::Matrix3f intrinsics;
+
     /**
      * @brief Get the CameraSettings object
      * 
@@ -55,7 +57,11 @@ struct CameraSettings
         return {_width, _height};
     }
 
-    const float fov[2]{87.0, 58.0};     // X Y fov
+    Eigen::Matrix3f getIntrinsicMatrix() const
+    {
+        return intrinsics;
+    }
+
     const float baseline = 55.0;  // mm
 
 private:
@@ -140,6 +146,8 @@ private:
 
     std::thread             _deviceMonitorThread;   // thread to monitor device
     std::atomic<bool>       _isMonitoring{};          // flag to monitor device
+
+    bool                    _flag = false;
 };
 
 #endif //CAMERA_H

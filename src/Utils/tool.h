@@ -60,7 +60,7 @@ private:
      *
      * @param pointset The PointSet object to display.
      */
-    void updatePose(PointSet& pointset) const;
+    static void updatePose(PointSet& pointset) ;
 
     /**
      * @brief Clears the GUI.

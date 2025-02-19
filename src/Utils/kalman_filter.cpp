@@ -4,15 +4,15 @@
 
 #include "kalman_filter.h"
 
-KalmanFilter::KalmanFilter(const Eigen::VectorXf& x0, const Eigen::MatrixXf& P0, const Eigen::MatrixXf& F,
-                                const Eigen::MatrixXf& Q, const Eigen::MatrixXf& H, const Eigen::MatrixXf& R)
+KalmanFilter::KalmanFilter(const Eigen::VectorXf& x0)
 {
     x_ = x0;
-    P_ = P0;
-    F_ = F;
-    Q_ = Q;
-    H_ = H;
-    R_ = R;
+    x_ = x0;
+    P_ = Eigen::MatrixXf::Identity(x0.size(), x0.size()) * 10;
+    F_ = Eigen::MatrixXf::Identity(x0.size(), x0.size());
+    Q_ = Eigen::MatrixXf::Identity(x0.size(), x0.size()) * 1;
+    H_ = Eigen::MatrixXf::Identity(x0.size(), x0.size());
+    R_ = Eigen::MatrixXf::Identity(x0.size(), x0.size()) * 4;
 }
 
 void KalmanFilter::predict()

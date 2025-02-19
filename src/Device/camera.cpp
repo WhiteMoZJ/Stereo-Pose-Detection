@@ -37,12 +37,14 @@ bool Camera::setUpStream()
     // disable emitter
     try {
         _cfg.enable_stream(RS2_STREAM_INFRARED, 1,
-            _settings.getResolution().width, _settings.getResolution().height, RS2_FORMAT_Y8, _fps);
+            640, 480, RS2_FORMAT_Y8, _fps);
         _cfg.enable_stream(RS2_STREAM_INFRARED, 2,
-            _settings.getResolution().width, _settings.getResolution().height, RS2_FORMAT_Y8, _fps);
+            640, 480, RS2_FORMAT_Y8, _fps);
 
         _selection = _pipe.start(_cfg);
         _selectedDevice = _selection.get_device();
+
+
 
         const auto depth_sensor = _selectedDevice.first<rs2::depth_sensor>();
         if (depth_sensor.supports(RS2_OPTION_EMITTER_ENABLED))
@@ -65,6 +67,22 @@ bool Camera::startStream()
 {
     if (!_isStreamOpen) return false;
     const rs2::frameset frameset = _pipe.wait_for_frames();
+
+    if (!_flag) {
+        rs2::stream_profile dprofile =  frameset.get_profile();
+        rs2::video_stream_profile dvsprofile(dprofile);
+        rs2_intrinsics depth_intrin =  dvsprofile.get_intrinsics();
+#if DEBUG
+        _settings.intrinsics <<
+            depth_intrin.fx, 0.0, depth_intrin.ppx,
+            0.0, depth_intrin.fy, depth_intrin.ppy,
+            0.0, 0.0, 1.0;
+
+        std::cout << _settings.intrinsics << "\n";
+#endif
+        _flag = true;
+    }
+    
     _isStreamOpen = frameset ? true : false;
     _isMonitoring = _isStreamOpen;
     if (frameset) {

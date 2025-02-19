@@ -161,14 +161,42 @@ void Gui::updateWindow()
 void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, Eigen::Vector3f& points)
 {
     // Draw projection of points as a ball in 3D space
-    ImVec2 p = ImVec2(points.x(), points.y());
-    ImVec2 q = ImVec2(points.x(), points.z());
-    ImVec2 r = ImVec2(points.y(), points.z());
+    // Draw projection of points as a ball in 3D space
+    float X = points.x();
+    float Y = points.y();
+    float Z = points.z();
+    if (Z <= 0.0f) return; // ignore points behind the camera
 
-    d->AddCircleFilled(ImVec2(a.x + p.x * s.x, a.y + p.y * s.y), 3.0f, IM_COL32(255, 255, 255, 255));
+    // RealSense D435i camera parameters
+    const float real_f_mm = 1.69f;      // focus length (mm)
+    const float sensor_width_mm = 3.2f;  // sensor width (mm)
+    const int img_width_px = 640;       // image width (px)
+    const int img_height_px = 480;      // image height (px)
+
+    // calculate the focal length in pixels
+    float f_pixels = real_f_mm * (img_width_px / sensor_width_mm);
+    // scale the focal length to the viewport
+    float f_scaled_x = f_pixels * (s.x / img_width_px);
+    float f_scaled_y = f_pixels * (s.y / img_height_px);
+
+    // main viewport center
+    float cx = s.x * 0.5f;
+    float cy = s.y * 0.5f;
+
+    // apply perspective projection
+    float u = (f_scaled_x * X) / Z + cx;
+    float v = (f_scaled_y * Y) / Z + cy;
+    v = s.y - v; // reverse y-axis
+
+    // translate to screen space
+    ImVec2 screen_pos(a.x + u, a.y + v);
+
+    // adjust the radius of the circle
+    float radius = 8.0f / (Z * 0.1f + 1.0f); // to avoid the circle too large
+    d->AddCircleFilled(screen_pos, radius, IM_COL32(255, 0, 0, 255));
 }
 
-void Gui::updatePose(PointSet& pointset) const
+void Gui::updatePose(PointSet& pointset)
 {
     // pose viewport
     if (ImGui::Begin("Pose", nullptr,
@@ -184,7 +212,7 @@ void Gui::updatePose(PointSet& pointset) const
         const ImVec4 m = ImVec4(0, 0, 0, 0);
         const float t = 0.0f;
 
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 15; i++) {
             FX(ImGui::GetWindowDrawList(), pos, end, s, m, t, pointset.points[i]);;
         }
 
