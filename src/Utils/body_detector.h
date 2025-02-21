@@ -42,12 +42,12 @@ private:
      * @brief Solves the body points in 3D.
      * @return The 3D space points of the body.
      */
-    SpacePoints solve3D(PointArray& points) const;
+    bool solve3D(PointArray& points);
 
     const std::string modelTxt = "../data/models/pose_deploy_linevec.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
 
-    // const int POSE_PAIRS[14][2] = { // MPI body
+    // const int POSE_PAIRS[15][2] = { // MPI body
     //  {0,1}, {1,2}, {2,3},
     //  {3,4}, {1,5}, {5,6},
     //  {6,7}, {1,14}, {14,8}, {8,9},
@@ -63,7 +63,9 @@ private:
 
     CameraSettings& _cameraSettings = CameraSettings::getSettings();
     std::unique_ptr<KalmanFilter> _kalman_filter[2];
+    std::unique_ptr<KalmanFilter> _kalman_filter_z;
 
+    SpacePoints _spacePoints;
 };
 
 

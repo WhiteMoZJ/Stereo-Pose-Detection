@@ -14,17 +14,11 @@ public:
     /**
      * @brief Default constructor for the KalmanFilter class.
      * @param x0 The initial state vector.
-     * @param P0 The initial state covariance matrix.
-     * @param F The state transition matrix.
-     * @param Q The process covariance matrix.
-     * @param H The measurement matrix.
-     * @param R The measurement covariance matrix.
+     * @param Q The process noise covariance matrix.
+     * @param R The process noise covariance matrix.
      */
-    explicit KalmanFilter(const Eigen::VectorXf& x0);
+    explicit KalmanFilter(const Eigen::VectorXf& x0, const float& Q, const float& R);
 
-    /**
-     * @brief Default destructor for the KalmanFilter class.
-     */
     ~KalmanFilter() = default;
 
     /**
@@ -46,11 +40,12 @@ public:
 
 private:
     Eigen::VectorXf x_; // state vector
+    Eigen::VectorXf X_k;
+    Eigen::MatrixXf A_;
     Eigen::MatrixXf P_; // state covariance matrix
-    Eigen::MatrixXf F_; // state transition matrix
-    Eigen::MatrixXf Q_; // process covariance matrix
-    Eigen::MatrixXf H_; // measurement matrix
     Eigen::MatrixXf R_; // measurement covariance matrix
+    Eigen::MatrixXf C_;
+    Eigen::MatrixXf Q_; // process covariance matrix
 };
 
 

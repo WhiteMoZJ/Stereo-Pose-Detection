@@ -156,44 +156,25 @@ void Gui::updateWindow()
  * @param m x,y = mouse position (normalized so 0,0 over 'a'; 1,1 is over 'b', not clamped)
  *          z,w = left/right button held. <-1.0f not pressed, 0.0f just pressed, >0.0f time held.
  * @param t time
- * @param points The 3D space points.
+ * @param point The 3D space point.
  */
-void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, Eigen::Vector3f& points)
+void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, Eigen::Vector3f& point, ImVec2 size)
 {
-    // Draw projection of points as a ball in 3D space
-    // Draw projection of points as a ball in 3D space
-    float X = points.x();
-    float Y = points.y();
-    float Z = points.z();
-    if (Z <= 0.0f) return; // ignore points behind the camera
+    // Draw the point (as a small circle or cross)
+    float aspectRatio = size.x / size.y;
+    float z = point.z();
 
-    // RealSense D435i camera parameters
-    const float real_f_mm = 1.69f;      // focus length (mm)
-    const float sensor_width_mm = 3.2f;  // sensor width (mm)
-    const int img_width_px = 640;       // image width (px)
-    const int img_height_px = 480;      // image height (px)
+    // Apply the perspective projection
+    float scale = 70 / (70 + z); // Simple depth-based scaling
 
-    // calculate the focal length in pixels
-    float f_pixels = real_f_mm * (img_width_px / sensor_width_mm);
-    // scale the focal length to the viewport
-    float f_scaled_x = f_pixels * (s.x / img_width_px);
-    float f_scaled_y = f_pixels * (s.y / img_height_px);
+    // Convert 3D coordinates to 2D screen space (assuming camera is at origin)
+    float x2D = (point.x() * scale) + size.x / 2.0f;
+    float y2D = (point.y() * scale) + size.y / 2.0f;
 
-    // main viewport center
-    float cx = s.x * 0.5f;
-    float cy = s.y * 0.5f;
+    ImVec2 projectedPoint = ImVec2(x2D, y2D);
 
-    // apply perspective projection
-    float u = (f_scaled_x * X) / Z + cx;
-    float v = (f_scaled_y * Y) / Z + cy;
-    v = s.y - v; // reverse y-axis
-
-    // translate to screen space
-    ImVec2 screen_pos(a.x + u, a.y + v);
-
-    // adjust the radius of the circle
-    float radius = 8.0f / (Z * 0.1f + 1.0f); // to avoid the circle too large
-    d->AddCircleFilled(screen_pos, radius, IM_COL32(255, 0, 0, 255));
+    float pointSize = 5.0f; // Size of the point
+    d->AddCircle(projectedPoint, pointSize, IM_COL32(255, 0, 0, 255));
 }
 
 void Gui::updatePose(PointSet& pointset)
@@ -212,9 +193,7 @@ void Gui::updatePose(PointSet& pointset)
         const ImVec4 m = ImVec4(0, 0, 0, 0);
         const float t = 0.0f;
 
-        for (int i = 0; i < 15; i++) {
-            FX(ImGui::GetWindowDrawList(), pos, end, s, m, t, pointset.points[i]);;
-        }
+        FX(ImGui::GetWindowDrawList(), V2(0, 0), V2(0, 0), s, m, t, pointset.points[0], size);
 
         ImGui::End();
     }
@@ -227,3 +206,4 @@ void Gui::clear() const
     if (_texture)
         glDeleteTextures(1, &_texture);
 }
+

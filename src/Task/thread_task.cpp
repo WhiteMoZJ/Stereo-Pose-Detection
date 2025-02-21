@@ -43,12 +43,22 @@ void ThreadTask::init() const
  * The acquired frames are pushed into the middle buffer for further processing.
  * If the middle buffer is full, the oldest frame is discarded.
  * The latest frame is also pushed into the front buffer and the back buffer for display.
+ * Initializes the GUI and waits for the camera stream.
+ * While the program is running, the GUI is updated continuously.
  */
 void ThreadTask::produce()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::lock_guard<std::mutex> guard(_mtx);
     std::cout << "produce\n";
+
+    if (!_guiPtr->init("Pose Detection")) {
+        threadInfo(MSG_ERR, "GUI Initiated Failed");
+        _isShoutdown = true;
+        _canDisplay = false;
+    }
+    threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
+
     while (!_isShoutdown) {
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;
@@ -58,8 +68,12 @@ void ThreadTask::produce()
             continue;
 
         // push frame to _frontBuffer for display
-        if (_middleBuffer.swapLatestTo(_guiPtr->frontBuffer) && _middleBuffer.swapLatestTo(_backBuffer))
+        if (_middleBuffer.swapLatestTo(_guiPtr->frontBuffer) && _middleBuffer.swapLatestTo(_backBuffer)) {
+            PointSet pointset;
+            _spacePointsBuffer.getLatest(pointset);
+            _isShoutdown = !_guiPtr->update(pointset);
             _canDisplay = true;
+        }
     }
 }
 
@@ -78,28 +92,8 @@ void ThreadTask::consume()
         if (!_backBuffer.getLatest(frame)) continue;
 
         SpacePoints points = _detectorPtr->detectBody(frame);
-        if (points.empty()) continue;
+        if constexpr (points.empty()) continue;
         _spacePointsBuffer.push(PointSet{frame.seq, points});
-    }
-}
-
-/**
- * Initializes the GUI and waits for the camera stream.
- * While the program is running, the GUI is updated continuously.
- */
-void ThreadTask::display()
-{
-    if (!_guiPtr->init("Pose Detection")) {
-        threadInfo(MSG_ERR, "GUI Initiated Failed");
-        _isShoutdown = true;
-    }
-
-    threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
-    while (!_isShoutdown) {
-        PointSet pointset;
-        _spacePointsBuffer.getLatest(pointset);
-        _isShoutdown = !_guiPtr->update(pointset);
-        // 1 ms lagging time to display
     }
 }
 
