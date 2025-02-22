@@ -42,7 +42,7 @@ private:
      * @brief Solves the body points in 3D.
      * @return The 3D space points of the body.
      */
-    bool solve3D(PointArray& points);
+    bool solve3D(const PointArray& points);
 
     const std::string modelTxt = "../data/models/pose_deploy_linevec.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
@@ -54,18 +54,20 @@ private:
     //  {9,10}, {14,11}, {11,12}, {12,13}
     // };
 
-    float thresh = 0.2;
+    float thresh = 0.12;
     float scale = 1.0 / 255;
     const int nparts = 15;
     cv::dnn::Net net;
 
     float _framerate;
+    long _frameCount = 0;
 
     CameraSettings& _cameraSettings = CameraSettings::getSettings();
     std::unique_ptr<KalmanFilter> _kalman_filter[2];
     std::unique_ptr<KalmanFilter> _kalman_filter_z;
 
     SpacePoints _spacePoints;
+    PointArray _current_point_array;
 };
 
 

@@ -28,9 +28,10 @@ BodyDetector::BodyDetector()
 
     // Initialize KalmanFilter in the constructor
     for (auto & i : _kalman_filter)
-        i = std::make_unique<KalmanFilter>(Eigen::Vector3f(0, 0, 0), 100, 5);
+        i = std::make_unique<KalmanFilter>(
+            Eigen::Vector3f(_cameraSettings.intrinsics(0, 0), _cameraSettings.intrinsics(1, 1), 0), 200, 5);
 
-    _kalman_filter_z = std::make_unique<KalmanFilter>(Eigen::Vector2f(0, 0), 100, 10);
+    _kalman_filter_z = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 15, 1>::Identity(), 100, 10);
 
 }
 
@@ -84,19 +85,30 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
                 points[i](n, 1) = static_cast<float>(p.y);
             }
             else {
-                points[i](n, 0) = -1;
-                points[i](n, 1) = -1;
+                points = _current_point_array;
                 flag = true;
+                break;
             }
         }
 
         if (!flag) {
+            _frameCount ++;
+            _kalman_filter[i]->update(Eigen::Vector3f(points[i](0, 0), points[i](0, 1), _frameCount));
             _kalman_filter[i]->predict();
-            _kalman_filter[i]->update(Eigen::Vector3f(points[i](0, 0), points[i](0, 1), frame.timeStamp));
+
             points[i](0, 0) = _kalman_filter[i]->getState()(0);
             points[i](0, 1) = _kalman_filter[i]->getState()(1);
+
+            _current_point_array[i] = points[i];
         }
     }
+
+#ifdef DEBUG
+    for (int j = 0; j < 15; j++) {
+        cv::circle(outimg_l, cv::Point(points[0](j, 0), points[0](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
+        cv::putText(outimg_l, std::to_string(j), cv::Point(points[0](j, 0), points[0](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
+    }
+#endif
 
 
     cv::imshow("outimg_l", outimg_l);
@@ -104,43 +116,38 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
     cv::waitKey(1);
     //
 
-    if (!solve3D(points)) return SpacePoints{};
+    solve3D(points);
     return _spacePoints;
 }
 
 
-bool BodyDetector::solve3D(PointArray& points)
+bool BodyDetector::solve3D(const PointArray& points)
 {
+
+    Eigen::Matrix<float, 15, 1> z = Eigen::Matrix<float, 15, 1>::Identity();
+    float x, y;
+
+    Eigen::Matrix<float, 15, 2> points_l = points[0], points_r = points[1];
     for (int i = 0; i < 15; i++) {
-        if (points[i](0, 0) == -1 || points[i](0, 0) == -1) {
-            _spacePoints[i] = Eigen::Vector3f(-1, -1, -100);
+        if (points_l(i, 0) == points_r(i, 0)) {
+            _kalman_filter_z->update(Eigen::Matrix<float, 15, 1>::Identity());
             return false;
         }
+        x = (points_l(i,0) + points_r(i,0)) / 2.0f
+                - _cameraSettings.intrinsics(0, 2);
+        y = -(points_l(i,1) + points_r(i,1)) / 2.0f
+                - _cameraSettings.intrinsics(1, 2);
 
-        else {
-
-            float x = (points[i](0,0) + points[i](1,0)) / 2.0f
-                        - (static_cast<float>(_cameraSettings.getResolution().width) / 2.0f);
-            float y = -(points[i](0,1) + points[i](1,1)) / 2.0f
-                        + (static_cast<float>(_cameraSettings.getResolution().height) / 2.0f);
-            if (points[i](1,0) - points[i](0,0) == 0)
-                return false;
-
-            _kalman_filter_z->predict();
-            float z = _cameraSettings.baseline * _cameraSettings.intrinsics(0, 2) / (points[i](1,0) - points[i](0,0));
-            if (z < 0)
-                z = -z;
-            _kalman_filter_z->update(Eigen::Vector2f(z, 1));
-
-            z = _kalman_filter_z->getState()(0);
-
-            _spacePoints[i] = Eigen::Vector3f(x, y, z);
-            if (i == 0) {
-                // std::cout << "x: " << x << " y: " << y << " z: " << z << "\n";
-                std::cout << " z: " << z << "\n";
-            }
-
-        }
+        z(i) = _cameraSettings.baseline * _cameraSettings.intrinsics(0, 0) / (points_l(i,0) - points_r(i,0));
     }
+    _kalman_filter_z->update(z);
+    _kalman_filter_z->predict();
+    z = _kalman_filter_z->getState();
+    for (int i = 0; i < 15; i++) {
+        _spacePoints[i] = Eigen::Vector3f(x, y, z(i));
+    }
+#ifdef DEBUG
+    std::cout << "[x: " << points_l(0,0) << " y: " << points_l(0,1) << " z: " << z(0) << "]\n";
+#endif
     return true;
 }
