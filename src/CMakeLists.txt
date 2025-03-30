@@ -16,7 +16,7 @@ add_library(Interface SHARED
         Device/camera.cpp
         Device/camera.h
 )
-target_link_libraries(Interface ${OpenCV_LIBS} GL glfw ${realsense2_LIBRARY} Eigen3::Eigen)
+target_link_libraries(Interface ${OpenCV_LIBS} OpenGL::GL ${CMAKE_DL_LIBS} glfw ${realsense2_LIBRARY} Eigen3::Eigen)
 
 # CUDA based library
 add_library(Detector SHARED

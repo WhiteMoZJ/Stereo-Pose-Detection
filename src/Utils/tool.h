@@ -60,7 +60,7 @@ private:
      *
      * @param pointset The PointSet object to display.
      */
-    static void updatePose(PointSet& pointset) ;
+    void updatePose(PointSet& pointset) ;
 
     /**
      * @brief Clears the GUI.
@@ -90,6 +90,18 @@ private:
     CameraSettings& _settings = CameraSettings::getSettings();
 
     SpacePoints     _lastSpacePoints;
+
+    std::array<Eigen::Vector3f, 4> coord = {Eigen::Vector3f(10.0f, 0.0f, 0.0f),
+                                            Eigen::Vector3f(0.0f, 10.0f, 0.0f),
+                                            Eigen::Vector3f(0.0f, 0.0f, 10.0f),
+                                            Eigen::Vector3f(0.0f, 0.0f, 0.0f)};
+    std::array<ImColor, 4> color = {ImColor(1.0f, 0.0f, 0.0f, 1.0f),
+                                    ImColor(0.0f, 1.0f, 0.0f, 1.0f),
+                                    ImColor(0.0f, 0.0f, 1.0f, 1.0f),
+                                    ImColor(1.0f, 1.0f, 1.0f, 1.0f)};
+    Eigen::Vector3f camera_position = Eigen::Vector3f(100.0f, 100.0f, 100.0f);
+    Eigen::Vector3f camera_target = Eigen::Vector3f(0.0f, 0.0f, 0.0f);
+    float camera_fov = 70.0f;
 };
 
 #endif // TOOL_H

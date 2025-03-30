@@ -111,14 +111,14 @@ void Gui::updateWindow()
         }
 
         // setting options viewport
-    	if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-    	    {   // gamma setting slider
-    	        ImGui::SliderFloat("Gamma", &_gamma, 0.1f, 5.0f, "%.1f");
-    	        ImGui::SameLine();
-    	        if (ImGui::Button("Reset"))
-    	            _gamma = 1.f;
-    	    }
-    	}
+        if (ImGui::CollapsingHeader("Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+            {   // gamma setting slider
+                ImGui::SliderFloat("FOV", &camera_fov, 10.f, 100.0f, "%.1f");
+                ImGui::SameLine();
+                if (ImGui::Button("Reset"))
+                    camera_fov = 70.f;
+            }
+        }
 
         // status viewport
         if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -153,50 +153,103 @@ void Gui::updateWindow()
  * @param a upper-left corner
  * @param b lower-right corner
  * @param s size (== b - a)
- * @param m x,y = mouse position (normalized so 0,0 over 'a'; 1,1 is over 'b', not clamped)
- *          z,w = left/right button held. <-1.0f not pressed, 0.0f just pressed, >0.0f time held.
- * @param t time
  * @param point The 3D space point.
  */
-void FX (ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, Eigen::Vector3f& point, ImVec2 size)
+void FX_COORD (ImDrawList* d, V2 a, V2 b, V2 s, const Eigen::Vector4f& point, const Eigen::Vector4f& origin, const float fov, const ImColor color)
 {
-    // Draw the point (as a small circle or cross)
-    float aspectRatio = size.x / size.y;
-    float z = point.z();
+    ImVec2 center = ImVec2(a.x + s.x/2, a.y + s.y / 2);
 
-    // Apply the perspective projection
-    float scale = 70 / (70 + z); // Simple depth-based scaling
+    // projection matrix
+    Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
+    proj << 1.0f / tan(fov * 3.1416 / 360) * 1.7778f, 0, 0, 0,
+            0, 1.0f / tan(fov * 3.1416 / 360), 0, 0,
+            0, 0, -1.0002f, -1.0f,
+            0, 0, -0.002f, 0;
 
-    // Convert 3D coordinates to 2D screen space (assuming camera is at origin)
-    float x2D = (point.x() * scale) + size.x / 2.0f;
-    float y2D = (point.y() * scale) + size.y / 2.0f;
+    Eigen::Vector4f point_nor  = proj * point;
+    Eigen::Vector4f origin_nor = proj * origin;
+    d->AddLine(ImVec2(origin_nor.x() + center.x, -origin_nor.y() + center.y),
+        ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y),
+        color, 1);
+}
 
-    ImVec2 projectedPoint = ImVec2(x2D, y2D);
+void FX(ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, const Eigen::Vector4f& point, const float fov)
+{
+    ImVec2 center = ImVec2(a.x + s.x/2, a.y + s.y / 2);
 
-    float pointSize = 5.0f; // Size of the point
-    d->AddCircle(projectedPoint, pointSize, IM_COL32(255, 0, 0, 255));
+    // projection matrix
+    Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
+    proj << 1.7778f / tan(fov * 3.1416 / 360), 0, 0, 0,
+            0, 1.0f / tan(fov * 3.1416 / 360), 0, 0,
+            0, 0, -1.0002f, -1.0f,
+            0, 0, -0.002f, 0;
+
+    Eigen::Vector4f point_nor  = proj * point;
+    d->AddCircle(ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y), 5, ImColor(1, 1, 1, 1), 0, 1);
 }
 
 void Gui::updatePose(PointSet& pointset)
 {
     // pose viewport
+    // n(x, y, z) is the normal vector of the plain of the camera direction and z-axis
+    // R = I + sin θ * ssmatrix + (1 - cos θ) * ssmatrix^2
+    // θ = 90 degree
+    // ssmatrix <<  0, -z,  y,
+    //              z,  0, -x,
+    //             -y,  x,  0;
+
+    const Eigen::Vector3f camera_direction_nor = (camera_target - camera_position).normalized();
+    const Eigen::Vector3f norm_vec = camera_direction_nor.cross(Eigen::Vector3f(0, 0 ,1)).normalized();
+    Eigen::Matrix3f ssmatrix = Eigen::Matrix3f::Zero();
+    ssmatrix << 0, -norm_vec.z(), norm_vec.y(),
+                norm_vec.z(), 0, -norm_vec.x(),
+                -norm_vec.y(), norm_vec.x(), 0;
+
+    Eigen::Matrix3f up_rot = Eigen::Matrix3f::Identity() + ssmatrix + ssmatrix * ssmatrix;
+    // std::cout << "up_rot: \n" << up_rot << std::endl;
+
+    // in opengl, view space is right-handed, clip space is left-handed
+    const Eigen::Vector3f camera_up_nor = (up_rot * camera_direction_nor).normalized();
+    Eigen::Matrix4f rot_matrix = Eigen::Matrix4f::Identity();
+    rot_matrix.block<1, 3>(0, 0) = camera_direction_nor.cross(camera_up_nor);
+    rot_matrix.block<1, 3>(1, 0) = camera_up_nor;
+    rot_matrix.block<1, 3>(2, 0) = camera_direction_nor;
+
+    Eigen::Matrix4f trans_matrix = Eigen::Matrix4f::Identity();
+    trans_matrix << 1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, camera_position.norm(),
+                    0, 0, 0, 1;
+
+    // pose viewport
     if (ImGui::Begin("Pose", nullptr,
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        const ImVec2 size(ImGui::GetContentRegionAvailWidth(), ImGui::GetContentRegionAvail().y);
-        const ImVec2 pos(ImGui::GetCursorScreenPos());
-        const ImVec2 end(pos.x + size.x, pos.y + size.y);
+        ImGuiWindowFlags_NoCollapse)) {
+        const ImVec2 size = ImGui::GetWindowSize();
+        const ImVec2 p = ImGui::GetItemRectSize();
+        // get the size of the window title, to prevent the points from being out of the viewport
+        const auto a = ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + p.y);
+        const auto b = ImVec2(a.x + size.x, a.y + size.y - p.y);
 
-        ImGui::GetWindowDrawList()->AddRectFilled(pos, end, IM_COL32(0, 0, 0, 255));
-        ImGui::GetWindowDrawList()->AddRect(pos, end, IM_COL32(255, 255, 255, 255));
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        draw_list->PushClipRect(a, b);
 
-        const ImVec2 s = size;
-        const ImVec4 m = ImVec4(0, 0, 0, 0);
-        const float t = 0.0f;
+        // transform the points to camera coordination
+        Eigen::Vector4f origin_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[3].x(), coord[3].y(), coord[3].z(), 1);
+        for (int i = 0; i < 4; i++) {
+            Eigen::Vector4f point_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[i].x(), coord[i].y(), coord[i].z(), 1);
+            FX_COORD(draw_list, a, b, size, point_cam, origin_cam, camera_fov, color[i]);
+        }
 
-        FX(ImGui::GetWindowDrawList(), V2(0, 0), V2(0, 0), s, m, t, pointset.points[0], size);
+        for (auto &i : pointset.points) {
+            Eigen::Vector4f point_cam = trans_matrix * rot_matrix * i;
+            FX(draw_list, a, b, size, ImVec4(1, 1, 1, 1), 0, point_cam, camera_fov);
+        }
+        draw_list->PopClipRect();
+
+        std::cout << "\n";
 
         ImGui::End();
-    }
+        }
 }
 
 void Gui::clear() const
