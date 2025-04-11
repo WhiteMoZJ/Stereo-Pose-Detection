@@ -29,9 +29,9 @@ BodyDetector::BodyDetector()
     // Initialize KalmanFilter in the constructor
     for (auto & i : _kalman_filter)
         i = std::make_unique<KalmanFilter>(
-            Eigen::Vector3f(_cameraSettings.intrinsics(0, 0), _cameraSettings.intrinsics(1, 1), 0), 200, 10);
+            Eigen::Vector3f(_cameraSettings.intrinsics(0, 0), _cameraSettings.intrinsics(1, 1), 0), 2000, 50);
 
-    _kalman_filter_z = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 15, 1>::Identity(), 200, 20);
+    _kalman_filter_z = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 15, 1>::Identity(), 2000, 20);
 
 }
 
@@ -125,25 +125,27 @@ bool BodyDetector::solve3D(const PointArray& points)
 {
 
     Eigen::Matrix<float, 15, 1> z = Eigen::Matrix<float, 15, 1>::Identity();
-    float x, y;
+    float x[15], y[15];
 
     Eigen::Matrix<float, 15, 2> points_l = points[0], points_r = points[1];
     for (int i = 0; i < 15; i++) {
         if (points_l(i, 0) == points_r(i, 0)) {
             return false;
         }
-        x = (points_l(i,0) + points_r(i,0)) / 2.0f
-                - _cameraSettings.intrinsics(0, 2);
-        y = -(points_l(i,1) + points_r(i,1)) / 2.0f
-                - _cameraSettings.intrinsics(1, 2);
 
         z(i) = _cameraSettings.baseline * _cameraSettings.intrinsics(0, 0) / (points_l(i,0) - points_r(i,0));
+
+        x[i] = (points_l(i,0) - _cameraSettings.intrinsics(0, 2)) * z(i) /  _cameraSettings.intrinsics(0, 0);
+        y[i] = (- points_l(i,1) - _cameraSettings.intrinsics(1, 2)) * z(i) /  _cameraSettings.intrinsics(1, 1);
+
+
     }
+    // z(15) = _frameCount;
     _kalman_filter_z->update(z);
     _kalman_filter_z->predict();
     z = _kalman_filter_z->getState();
     for (int i = 0; i < 15; i++) {
-        _spacePoints[i] = Eigen::Vector4f(x, y, z(i), 1);
+        _spacePoints[i] = Eigen::Vector4f(x[i], y[i], z(i)-200, 1);
     }
 #ifdef DEBUG
     std::cout << "[x: " << points_l(0,0) << " y: " << points_l(0,1) << " z: " << z(0) << "]\n";

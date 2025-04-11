@@ -9,8 +9,8 @@ set(IMGUI_SRC
 
 add_library(Interface SHARED
         ${IMGUI_SRC}
-        Utils/tool.h
-        Utils/tool.cpp
+        Utils/gui.h
+        Utils/gui.cpp
         Utils/frame_buffer.cpp
         Utils/frame_buffer.h
         Device/camera.cpp

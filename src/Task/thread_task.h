@@ -54,6 +54,7 @@ private:
     tick _startTime;
 
     SpacePoints current_points;
+    PointSet pointset;
 
     /**
      * @brief Outputs thread information in the command line.

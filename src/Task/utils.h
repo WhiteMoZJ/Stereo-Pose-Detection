@@ -5,7 +5,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "../Utils/tool.h"
+#include "../Utils/gui.h"
 #include "../Utils/body_detector.h"
 #include "../Utils/frame_buffer.h"
 

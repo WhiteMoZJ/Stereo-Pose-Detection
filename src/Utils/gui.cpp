@@ -2,7 +2,7 @@
 // Created by junchau on 10/23/23.
 //
 
-#include "tool.h"
+#include "gui.h"
 
 // Gui class function
 Gui::Gui():
@@ -13,6 +13,11 @@ Gui::Gui():
     _showDebugInfo = true;
     _isVsync = true;
     _gamma = 1.f;
+
+    trans_matrix_xyz << 0, 0, 1, 0,
+                        1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 0, 1;
 }
 
 Gui::~Gui()
@@ -179,16 +184,16 @@ void FX(ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, const Eigen::Vector4
 
     // projection matrix
     Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
-    proj << 1.7778f / tan(fov * 3.1416 / 360), 0, 0, 0,
+    proj << 1.0f / tan(fov * 3.1416 / 360), 0, 0, 0,
             0, 1.0f / tan(fov * 3.1416 / 360), 0, 0,
             0, 0, -1.0002f, -1.0f,
             0, 0, -0.002f, 0;
 
     Eigen::Vector4f point_nor  = proj * point;
-    d->AddCircle(ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y), 5, ImColor(1, 1, 1, 1), 0, 1);
+    d->AddCircle(ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y), 3, ImColor(1.0f, 1.0f, 1.0f, 1.0f), 0, 2);
 }
 
-void Gui::updatePose(PointSet& pointset)
+void Gui::updatePose(const PointSet& pointset)
 {
     // pose viewport
     // n(x, y, z) is the normal vector of the plain of the camera direction and z-axis
@@ -215,6 +220,8 @@ void Gui::updatePose(PointSet& pointset)
     rot_matrix.block<1, 3>(1, 0) = camera_up_nor;
     rot_matrix.block<1, 3>(2, 0) = camera_direction_nor;
 
+    // std::cout << "rot_matrix: \n" << rot_matrix << std::endl;
+
     Eigen::Matrix4f trans_matrix = Eigen::Matrix4f::Identity();
     trans_matrix << 1, 0, 0, 0,
                     0, 1, 0, 0,
@@ -223,7 +230,7 @@ void Gui::updatePose(PointSet& pointset)
 
     // pose viewport
     if (ImGui::Begin("Pose", nullptr,
-        ImGuiWindowFlags_NoCollapse)) {
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         const ImVec2 size = ImGui::GetWindowSize();
         const ImVec2 p = ImGui::GetItemRectSize();
         // get the size of the window title, to prevent the points from being out of the viewport
@@ -234,20 +241,17 @@ void Gui::updatePose(PointSet& pointset)
         draw_list->PushClipRect(a, b);
 
         // transform the points to camera coordination
-        Eigen::Vector4f origin_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[3].x(), coord[3].y(), coord[3].z(), 1);
-        for (int i = 0; i < 4; i++) {
+        const Eigen::Vector4f origin_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[3].x(), coord[3].y(), coord[3].z(), 1);
+        for (int i = 0; i < 3; i++) {
             Eigen::Vector4f point_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[i].x(), coord[i].y(), coord[i].z(), 1);
             FX_COORD(draw_list, a, b, size, point_cam, origin_cam, camera_fov, color[i]);
         }
 
         for (auto &i : pointset.points) {
-            Eigen::Vector4f point_cam = trans_matrix * rot_matrix * i;
+            Eigen::Vector4f point_cam = trans_matrix * rot_matrix * trans_matrix_xyz * i;
             FX(draw_list, a, b, size, ImVec4(1, 1, 1, 1), 0, point_cam, camera_fov);
         }
         draw_list->PopClipRect();
-
-        std::cout << "\n";
-
         ImGui::End();
         }
 }

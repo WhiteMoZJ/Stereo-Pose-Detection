@@ -52,12 +52,12 @@ void ThreadTask::produce()
     std::lock_guard<std::mutex> guard(_mtx);
     std::cout << "produce\n";
 
-    if (!_guiPtr->init("Pose Detection")) {
-        threadInfo(MSG_ERR, "GUI Initiated Failed");
-        _isShoutdown = true;
-        _canDisplay = false;
-    }
-    threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
+    // if (!_guiPtr->init("Pose Detection")) {
+    //     threadInfo(MSG_ERR, "GUI Initiated Failed");
+    //     _isShoutdown = true;
+    //     _canDisplay = false;
+    // }
+    // threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
 
     while (!_isShoutdown) {
         if (!_cameraPtr->startStream()) continue;
@@ -69,9 +69,6 @@ void ThreadTask::produce()
 
         // push frame to _frontBuffer for display
         if (_middleBuffer.swapLatestTo(_guiPtr->frontBuffer) && _middleBuffer.swapLatestTo(_backBuffer)) {
-            PointSet pointset;
-            _spacePointsBuffer.getLatest(pointset);
-            _isShoutdown = !_guiPtr->update(pointset);
             _canDisplay = true;
         }
     }
@@ -96,6 +93,27 @@ void ThreadTask::consume()
         _spacePointsBuffer.push(PointSet{frame.seq, points});
     }
 }
+
+
+/**
+ * Initializes the GUI and waits for the camera stream.
+ * While the program is running, the GUI is updated continuously.
+ */
+void ThreadTask::display()
+{
+    if (!_guiPtr->init("Pose Detection")) {
+        threadInfo(MSG_ERR, "GUI Initiated Failed");
+        _isShoutdown = true;
+    }
+
+    threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
+    while (!_isShoutdown) {
+        _spacePointsBuffer.getLatest(pointset);
+        _isShoutdown = !_guiPtr->update(pointset);
+        // 1 ms lagging time to display
+    }
+}
+
 
 /**
  * Prints the timestamp and the message type along with the provided information.

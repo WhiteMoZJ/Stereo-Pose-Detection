@@ -60,7 +60,7 @@ private:
      *
      * @param pointset The PointSet object to display.
      */
-    void updatePose(PointSet& pointset) ;
+    void updatePose(const PointSet& pointset) ;
 
     /**
      * @brief Clears the GUI.
@@ -99,9 +99,14 @@ private:
                                     ImColor(0.0f, 1.0f, 0.0f, 1.0f),
                                     ImColor(0.0f, 0.0f, 1.0f, 1.0f),
                                     ImColor(1.0f, 1.0f, 1.0f, 1.0f)};
-    Eigen::Vector3f camera_position = Eigen::Vector3f(100.0f, 100.0f, 100.0f);
+    Eigen::Vector3f camera_position = Eigen::Vector3f(500.0f, 500.0f, 500.0f);
     Eigen::Vector3f camera_target = Eigen::Vector3f(0.0f, 0.0f, 0.0f);
     float camera_fov = 70.0f;
+
+    // for the difference between the calculated coordination of body-detector and view space
+    // add a transform matrix that
+    // z->x y->z x->y
+    Eigen::Matrix4f trans_matrix_xyz = Eigen::Matrix4f::Identity();
 };
 
 #endif // TOOL_H

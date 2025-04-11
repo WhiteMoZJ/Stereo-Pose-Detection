@@ -57,19 +57,17 @@ struct CameraSettings
         return {_width, _height};
     }
 
-    Eigen::Matrix3f getIntrinsicMatrix() const
-    {
-        return intrinsics;
-    }
-
     const float baseline = 55.0;  // mm
 
 private:
     int _width = 0, _height = 0;   // frame size
 };
 
+// you can define your owen class Camera
+// just be sure that providing the intrinsics(required) and other necessary parameters
+
 /**
- * @brief Class representing a camera
+ * @brief Class representing a camera.
  */
 class Camera
 {
