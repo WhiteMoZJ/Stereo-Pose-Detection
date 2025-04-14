@@ -2,8 +2,8 @@
 // Created by junchau on 10/23/23.
 //
 
-#ifndef TOOL_H
-#define TOOL_H
+#ifndef GUI_H
+#define GUI_H
 
 #include "frame_buffer.h"
 #include "pointset_buffer.h"
@@ -16,6 +16,7 @@
 
 #include <GLFW/glfw3.h> // be sure glfw inluded after imgui
 
+#define V2 ImVec2
 
 /**
  * @brief The Gui class represents a graphical user interface created using Imgui.
@@ -109,4 +110,4 @@ private:
     Eigen::Matrix4f trans_matrix_xyz = Eigen::Matrix4f::Identity();
 };
 
-#endif // TOOL_H
+#endif // GUI_H

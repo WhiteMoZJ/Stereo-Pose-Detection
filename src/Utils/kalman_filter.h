@@ -17,7 +17,7 @@ public:
      * @param Q The process noise covariance matrix.
      * @param R The process noise covariance matrix.
      */
-    explicit KalmanFilter(const Eigen::VectorXf& x0, const float& Q, const float& R);
+    explicit KalmanFilter(const Eigen::VectorXf& x0, const float& R, const float& Q);
 
     ~KalmanFilter() = default;
 

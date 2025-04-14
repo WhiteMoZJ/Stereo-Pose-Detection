@@ -52,13 +52,6 @@ void ThreadTask::produce()
     std::lock_guard<std::mutex> guard(_mtx);
     std::cout << "produce\n";
 
-    // if (!_guiPtr->init("Pose Detection")) {
-    //     threadInfo(MSG_ERR, "GUI Initiated Failed");
-    //     _isShoutdown = true;
-    //     _canDisplay = false;
-    // }
-    // threadInfo(MSG_START, "GUI Initiated, Waiting for stream...");
-
     while (!_isShoutdown) {
         if (!_cameraPtr->startStream()) continue;
         std::array<cv::Mat, 2> images;

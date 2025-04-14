@@ -56,11 +56,13 @@ private:
     long _frameCount = 0;
 
     CameraSettings& _cameraSettings = CameraSettings::getSettings();
-    std::unique_ptr<KalmanFilter> _kalman_filter[2];
-    std::unique_ptr<KalmanFilter> _kalman_filter_z;
+    std::unique_ptr<KalmanFilter> _kalman_filter[2][16];
+    std::unique_ptr<KalmanFilter> _kalman_filter_z[16];
 
     SpacePoints _spacePoints;
     PointArray _current_point_array;
+
+    bool filter_flag = false;
 };
 
 

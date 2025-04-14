@@ -28,10 +28,15 @@ BodyDetector::BodyDetector()
 
     // Initialize KalmanFilter in the constructor
     for (auto & i : _kalman_filter)
-        i = std::make_unique<KalmanFilter>(
-            Eigen::Vector3f(_cameraSettings.intrinsics(0, 0), _cameraSettings.intrinsics(1, 1), 0), 2000, 50);
+        for (auto &j : i)
+            j = std::make_unique<KalmanFilter>(
+                Eigen::Vector3f(_cameraSettings.intrinsics(0, 2), _cameraSettings.intrinsics(1, 2), 0), 1000, 20);
 
-    _kalman_filter_z = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 15, 1>::Identity(), 2000, 20);
+    for (auto & i : _kalman_filter_z)
+        i = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 3, 1>::Ones(), 500, 10);
+
+    for (auto &i : _current_point_array)
+        i = Eigen::Matrix<float, 15, 2>::Zero();
 
 }
 
@@ -42,10 +47,6 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
     PointArray points{};
 
     bool flag = false;
-
-    // create 2 black gray images
-    cv::Mat outimg_l = frame.images[0].clone();
-    cv::cvtColor(outimg_l, outimg_l, cv::COLOR_GRAY2BGR);
 
     // Loop over the images in the frame
     for (int i = 0; i < 2; i++) {
@@ -77,44 +78,50 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
 
             // If the maximum is greater than the threshold, update the point
             if (conf > thresh) {
+
                 p = pm;
                 p.x *= _cameraSettings.getResolution().width / W;
                 p.y *= _cameraSettings.getResolution().height / H;
 
                 points[i](n, 0) = static_cast<float>(p.x);
                 points[i](n, 1) = static_cast<float>(p.y);
+
             }
             else {
                 points = _current_point_array;
                 flag = true;
-                break;
             }
-        }
 
-        if (!flag) {
-            _frameCount ++;
-            _kalman_filter[i]->update(Eigen::Vector3f(points[i](0, 0), points[i](0, 1), _frameCount));
-            _kalman_filter[i]->predict();
-
-            points[i](0, 0) = _kalman_filter[i]->getState()(0);
-            points[i](0, 1) = _kalman_filter[i]->getState()(1);
-
-            _current_point_array[i] = points[i];
+            if (!flag) {
+                _frameCount ++;
+                _kalman_filter[i][n]->update(Eigen::Vector3f(points[i](n, 0), points[i](n, 1), _frameCount));
+                points[i](n, 0) = _kalman_filter[i][n]->getState()(0);
+                points[i](n, 1) = _kalman_filter[i][n]->getState()(1);
+                _kalman_filter[i][n]->predict();
+                _current_point_array[i] = points[i];
+            }
         }
     }
 
 #ifdef DEBUG
+
+    // create 2 black gray images
+    cv::Mat outimg_l = frame.images[0].clone();
+    cv::cvtColor(outimg_l, outimg_l, cv::COLOR_GRAY2BGR);
+
+    cv::Mat outimg_r = frame.images[1].clone();
+    cv::cvtColor(outimg_r, outimg_r, cv::COLOR_GRAY2BGR);
+
     for (int j = 0; j < 15; j++) {
-        cv::circle(outimg_l, cv::Point(points[0](j, 0), points[0](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
-        cv::putText(outimg_l, std::to_string(j), cv::Point(points[0](j, 0), points[0](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
+        cv::circle(outimg_l, cv::Point(_current_point_array[0](j, 0), _current_point_array[0](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
+        cv::putText(outimg_l, std::to_string(j), cv::Point(_current_point_array[0](j, 0), _current_point_array[0](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
+        cv::circle(outimg_r, cv::Point(_current_point_array[1](j, 0), _current_point_array[1](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
+        cv::putText(outimg_r, std::to_string(j), cv::Point(_current_point_array[1](j, 0), _current_point_array[1](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
     }
-#endif
-
-
     cv::imshow("outimg_l", outimg_l);
-    // cv::imshow("outimg_r", frame.images[0]);
+    cv::imshow("outimg_r", outimg_l);
     cv::waitKey(1);
-    //
+#endif
 
     solve3D(points);
     return _spacePoints;
@@ -129,26 +136,22 @@ bool BodyDetector::solve3D(const PointArray& points)
 
     Eigen::Matrix<float, 15, 2> points_l = points[0], points_r = points[1];
     for (int i = 0; i < 15; i++) {
-        if (points_l(i, 0) == points_r(i, 0)) {
-            return false;
-        }
 
+        _kalman_filter_z[i]->update(Eigen::Vector3f(x[i], y[i], z(i)));
         z(i) = _cameraSettings.baseline * _cameraSettings.intrinsics(0, 0) / (points_l(i,0) - points_r(i,0));
 
         x[i] = (points_l(i,0) - _cameraSettings.intrinsics(0, 2)) * z(i) /  _cameraSettings.intrinsics(0, 0);
         y[i] = (- points_l(i,1) - _cameraSettings.intrinsics(1, 2)) * z(i) /  _cameraSettings.intrinsics(1, 1);
 
+        _kalman_filter_z[i]->predict();
+        z(i) = _kalman_filter_z[i]->getState().z();
 
-    }
-    // z(15) = _frameCount;
-    _kalman_filter_z->update(z);
-    _kalman_filter_z->predict();
-    z = _kalman_filter_z->getState();
-    for (int i = 0; i < 15; i++) {
         _spacePoints[i] = Eigen::Vector4f(x[i], y[i], z(i)-200, 1);
     }
+
+
 #ifdef DEBUG
-    std::cout << "[x: " << points_l(0,0) << " y: " << points_l(0,1) << " z: " << z(0) << "]\n";
+    std::cout << "[x: " << x[1] << " y: " << y[1] << " z: " << z(1) << "]\n";
 #endif
     return true;
 }

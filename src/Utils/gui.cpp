@@ -148,7 +148,6 @@ void Gui::updateWindow()
     }
 }
 
-#define V2 ImVec2
 /**
  * @brief Render the pose
  * get the space points and render the pose
@@ -160,7 +159,7 @@ void Gui::updateWindow()
  * @param s size (== b - a)
  * @param point The 3D space point.
  */
-void FX_COORD (ImDrawList* d, V2 a, V2 b, V2 s, const Eigen::Vector4f& point, const Eigen::Vector4f& origin, const float fov, const ImColor color)
+void FX (ImDrawList* d, V2 a, V2 b, V2 s, const Eigen::Vector4f& point, const Eigen::Vector4f& origin, const float fov, const ImColor color)
 {
     ImVec2 center = ImVec2(a.x + s.x/2, a.y + s.y / 2);
 
@@ -178,19 +177,34 @@ void FX_COORD (ImDrawList* d, V2 a, V2 b, V2 s, const Eigen::Vector4f& point, co
         color, 1);
 }
 
-void FX(ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, const Eigen::Vector4f& point, const float fov)
+void FX(ImDrawList* d, V2 a, V2 b, V2 s, ImVec4 m, float t, const PointSet& pointset, const float fov, const Eigen::Matrix4f& trans_matrix)
 {
     ImVec2 center = ImVec2(a.x + s.x/2, a.y + s.y / 2);
 
     // projection matrix
     Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
-    proj << 1.0f / tan(fov * 3.1416 / 360), 0, 0, 0,
+    proj << 1.0f / tan(fov * 3.1416 / 360) * 1.7778f, 0, 0, 0,
             0, 1.0f / tan(fov * 3.1416 / 360), 0, 0,
             0, 0, -1.0002f, -1.0f,
             0, 0, -0.002f, 0;
 
-    Eigen::Vector4f point_nor  = proj * point;
-    d->AddCircle(ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y), 3, ImColor(1.0f, 1.0f, 1.0f, 1.0f), 0, 2);
+    for (auto &i : pointset.points) {
+        Eigen::Vector4f point_cam = trans_matrix * i;
+        Eigen::Vector4f point_nor  = proj * point_cam;
+        d->AddCircle(ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y), 3, ImColor(1.0f, 1.0f, 1.0f, 1.0f), 0, 2);
+    }
+
+    int connect[14][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4},
+                          {1, 5}, {5, 6}, {6, 7}, {1, 14},
+                          {8, 9}, {9, 10}, {8, 14}, {14, 11}, {11, 12}, {12, 13}};
+
+    for (int i = 0; i < 14; i++) {
+        Eigen::Vector4f point_cam = trans_matrix * pointset.points[connect[i][0]];
+        Eigen::Vector4f point_nor  = proj * point_cam;
+        Eigen::Vector4f point_cam2 = trans_matrix * pointset.points[connect[i][1]];
+        Eigen::Vector4f point_nor2  = proj * point_cam2;
+        d->AddLine(ImVec2(point_nor.x() + center.x, -point_nor.y() + center.y), ImVec2(point_nor2.x() + center.x, -point_nor2.y() + center.y), ImColor(1.0f, 0.0f, 0.0f, 1.0f), 1);
+    }
 }
 
 void Gui::updatePose(const PointSet& pointset)
@@ -244,13 +258,10 @@ void Gui::updatePose(const PointSet& pointset)
         const Eigen::Vector4f origin_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[3].x(), coord[3].y(), coord[3].z(), 1);
         for (int i = 0; i < 3; i++) {
             Eigen::Vector4f point_cam = trans_matrix * rot_matrix * Eigen::Vector4f(coord[i].x(), coord[i].y(), coord[i].z(), 1);
-            FX_COORD(draw_list, a, b, size, point_cam, origin_cam, camera_fov, color[i]);
+            FX(draw_list, a, b, size, point_cam, origin_cam, camera_fov, color[i]);
         }
 
-        for (auto &i : pointset.points) {
-            Eigen::Vector4f point_cam = trans_matrix * rot_matrix * trans_matrix_xyz * i;
-            FX(draw_list, a, b, size, ImVec4(1, 1, 1, 1), 0, point_cam, camera_fov);
-        }
+        FX(draw_list, a, b, size, ImVec4(1, 1, 1, 1), 0, pointset, camera_fov, trans_matrix * rot_matrix * trans_matrix_xyz);
         draw_list->PopClipRect();
         ImGui::End();
         }

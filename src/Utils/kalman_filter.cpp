@@ -12,7 +12,7 @@ KalmanFilter::KalmanFilter(const Eigen::VectorXf& x0, const float& R, const floa
     C_ = Eigen::MatrixXf::Identity(x0.size(), x0.size());
     R_ = Eigen::MatrixXf::Identity(x0.size(), x0.size()) * R;
     Q_ = Eigen::MatrixXf::Identity(x0.size(), x0.size()) * Q;
-    P_ = Eigen::MatrixXf::Identity(x0.size(), x0.size());
+    P_ = Eigen::MatrixXf::Identity(x0.size(), x0.size()) * 50;
 }
 
 void KalmanFilter::predict()
