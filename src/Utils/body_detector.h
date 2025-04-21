@@ -5,6 +5,11 @@
 #ifndef BODY_DETECTOR_H
 #define BODY_DETECTOR_H
 
+#ifdef DEBUG
+#include <iostream>
+#include <fstream>
+#endif
+
 #include "../stdafx.h"
 #include "frame_buffer.h"
 #include "pointset_buffer.h"
@@ -19,7 +24,7 @@ class BodyDetector
 public:
 
     BodyDetector();
-    ~BodyDetector()  = default;
+    ~BodyDetector();
 
     /**
      * @brief Detects the body from a frame.
@@ -63,6 +68,10 @@ private:
     PointArray _current_point_array;
 
     bool filter_flag = false;
+#ifdef DEBUG
+    std::ofstream outfile_filter = std::ofstream("filter.txt");
+    std::ofstream outfile_raw = std::ofstream("raw.txt");
+#endif
 };
 
 

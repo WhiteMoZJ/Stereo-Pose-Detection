@@ -24,13 +24,7 @@ public:
     /**
      * @brief Predicts the next state of the system.
      */
-    void predict();
-
-    /**
-     * @brief Updates the state estimate based on the given measurement.
-     * @param z The measurement vector.
-     */
-    void update(const Eigen::VectorXf& z);
+    void predict(const Eigen::VectorXf& z);
 
     /**
      * @brief Returns the current state vector.
