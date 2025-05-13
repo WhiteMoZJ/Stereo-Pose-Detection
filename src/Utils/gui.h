@@ -102,7 +102,7 @@ private:
                                     ImColor(1.0f, 1.0f, 1.0f, 1.0f)};
     Eigen::Vector3f camera_position = Eigen::Vector3f(500.0f, 500.0f, 500.0f);
     Eigen::Vector3f camera_target = Eigen::Vector3f(0.0f, 0.0f, 0.0f);
-    float camera_fov = 70.0f;
+    float camera_fov = 40.0f;
 
     // for the difference between the calculated coordination of body-detector and view space
     // add a transform matrix that

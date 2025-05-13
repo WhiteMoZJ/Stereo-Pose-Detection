@@ -20,6 +20,8 @@ KalmanFilter::KalmanFilter(const Eigen::VectorXf& x0, const float& R, const floa
 
 void KalmanFilter::predict(const Eigen::VectorXf& z)
 {
+    if (z.array().isNaN().any()) return;
+
     if (x_ == Eigen::MatrixXf::Zero(z.size(), 1))
         x_ = z;
     X_k = A_ * x_;

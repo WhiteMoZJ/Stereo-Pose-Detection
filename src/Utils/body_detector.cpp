@@ -30,10 +30,10 @@ BodyDetector::BodyDetector()
     for (auto & i : _kalman_filter)
         for (auto &j : i)
             j = std::make_unique<KalmanFilter>(
-                Eigen::Vector3f(_cameraSettings.intrinsics(0, 2), _cameraSettings.intrinsics(1, 2), 0), 1, 5);
+                Eigen::Vector3f(_cameraSettings.intrinsics(0, 2), _cameraSettings.intrinsics(1, 2), 0), 100, 3);
 
     for (auto & i : _kalman_filter_z)
-        i = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 4, 1>::Ones(), 1, 5);
+        i = std::make_unique<KalmanFilter>(Eigen::Matrix<float, 4, 1>::Ones(), 0.5, 10);
 
     for (auto &i : _current_point_array)
         i = Eigen::Matrix<float, 15, 2>::Zero();
@@ -111,8 +111,13 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
                 points[i](n, 0) = _kalman_filter[i][n]->getState()(0);
                 points[i](n, 1) = _kalman_filter[i][n]->getState()(1);
                 _current_point_array[i] = points[i];
+
+
             }
 #ifdef DEBUG
+            if (i == 0)
+                // std::cout << points[i] << std::endl;
+
             if (i == 0 && n == 1) {
                 outfile_filter << points[i](n, 0) << "," << points[i](n, 1) << " 0 0\n";
             }
@@ -126,17 +131,17 @@ SpacePoints BodyDetector::detectBody(const Frame &frame)
     cv::Mat outimg_l = frame.images[0].clone();
     cv::cvtColor(outimg_l, outimg_l, cv::COLOR_GRAY2BGR);
 
-    cv::Mat outimg_r = frame.images[1].clone();
-    cv::cvtColor(outimg_r, outimg_r, cv::COLOR_GRAY2BGR);
+    // cv::Mat outimg_r = frame.images[1].clone();
+    // cv::cvtColor(outimg_r, outimg_r, cv::COLOR_GRAY2BGR);
 
     for (int j = 0; j < 15; j++) {
         cv::circle(outimg_l, cv::Point(_current_point_array[0](j, 0), _current_point_array[0](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
         cv::putText(outimg_l, std::to_string(j), cv::Point(_current_point_array[0](j, 0), _current_point_array[0](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
-        cv::circle(outimg_r, cv::Point(_current_point_array[1](j, 0), _current_point_array[1](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
-        cv::putText(outimg_r, std::to_string(j), cv::Point(_current_point_array[1](j, 0), _current_point_array[1](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
+    //     cv::circle(outimg_r, cv::Point(_current_point_array[1](j, 0), _current_point_array[1](j, 1)), 5, cv::Scalar(0, 255, 0), -1);
+    //     cv::putText(outimg_r, std::to_string(j), cv::Point(_current_point_array[1](j, 0), _current_point_array[1](j, 1) - 10), cv::FONT_HERSHEY_SIMPLEX , 0.5, cv::Scalar(0, 255, 0), 2);
     }
     cv::imshow("outimg_l", outimg_l);
-    cv::imshow("outimg_r", outimg_l);
+    // cv::imshow("outimg_r", outimg_l);
     cv::waitKey(1);
 #endif
 
@@ -156,20 +161,25 @@ bool BodyDetector::solve3D(const PointArray& points)
         if (points_l(i,0) == points_r(i,0))
             z(i) = cur_z(i);
         else {
-            z(i) = _cameraSettings.baseline * _cameraSettings.intrinsics(0, 0) / (points_l(i,0) - points_r(i,0));
+            z(i) = _cameraSettings.baseline * _cameraSettings.intrinsics(0, 0) / (points_l(i,0) - points_r(i,0) + 500);
             cur_z(i) = z(i);
         }
+
+        _kalman_filter_z[i]->predict(Eigen::Vector4f(x[i], y[i], z(i), 1));
+        // z(i) = _kalman_filter_z[i]->getState().z();
+
         x[i] = (points_l(i,0) - _cameraSettings.intrinsics(0, 2)) * z(i) /  _cameraSettings.intrinsics(0, 0);
         y[i] = (- points_l(i,1) - _cameraSettings.intrinsics(1, 2)) * z(i) /  _cameraSettings.intrinsics(1, 1);
-        _kalman_filter_z[i]->predict(Eigen::Vector4f(x[i], y[i], z(i), 1));
-        z(i) = _kalman_filter_z[i]->getState().z();
 
-        _spacePoints[i] = Eigen::Vector4f(x[i], y[i], z(i)-200, 1);
+        // _spacePoints[i] = _kalman_filter_z[i]->getState() / 10 ;
+        _spacePoints[i] = Eigen::Vector4f(x[i], y[i], z(i), 1);
+
+        std::cout << z(i) << "\n";
     }
 
 
 #ifdef DEBUG
-    std::cout << _spacePoints[1].transpose() << "\n";
+    // std::cout << _spacePoints[1].transpose() << "\n";
 #endif
     return true;
 }

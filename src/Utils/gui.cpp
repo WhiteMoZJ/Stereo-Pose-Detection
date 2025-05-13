@@ -121,7 +121,7 @@ void Gui::updateWindow()
                 ImGui::SliderFloat("FOV", &camera_fov, 10.f, 100.0f, "%.1f");
                 ImGui::SameLine();
                 if (ImGui::Button("Reset"))
-                    camera_fov = 70.f;
+                    camera_fov = 50.f;
             }
         }
 

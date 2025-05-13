@@ -12,7 +12,6 @@
 
 #include "../stdafx.h"
 #include "frame_buffer.h"
-#include "pointset_buffer.h"
 #include "../Device/camera.h"
 #include "kalman_filter.h"
 
@@ -52,7 +51,7 @@ private:
     const std::string modelTxt = "../data/models/pose_deploy_linevec.prototxt";
     const std::string modelBin = "../data/models/pose_iter_160000.caffemodel";
 
-    float thresh = 0.12;
+    float thresh = 0.08;
     float scale = 0.003922;
     const int nparts = 15;
     cv::dnn::Net net;
